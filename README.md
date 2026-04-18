@@ -227,7 +227,7 @@ O sistema segue o padrão **MVC (Model-View-Controller)**:
 
 ```
 ┌─────────────┐     HTTP      ┌──────────────┐     SQL       ┌────────────┐
-│  Frontend   │ ◄──────────► │   app.py     │ ◄──────────► │ PostgreSQL │
+│  Frontend   │  ◄──────────► │   app.py     │  ◄──────────► │ PostgreSQL │
 │  (View)     │   JSON/HTML   │ (Controller) │  psycopg2     │  (Model)   │
 │             │               │              │               │            │
 │ HTML/CSS/JS │               │ Flask REST   │               │ veiculos   │
