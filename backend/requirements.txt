@@ -1,0 +1,19 @@
+# ═══════════════════════════════════════════════════
+# Dependências Python — Sistema de Gestão de Frotas
+# Instalar: pip install -r requirements.txt
+# ═══════════════════════════════════════════════════
+
+# Framework Web (API REST)
+Flask
+Flask-CORS
+
+# Banco de Dados PostgreSQL
+psycopg2-binary
+
+# Segurança (variáveis de ambiente)
+python-dotenv
+
+# Machine Learning e Análise de Dados
+scikit-learn
+pandas
+numpy

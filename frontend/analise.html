@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+
+{% block title %}Inteligência Artificial & Performance{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* ═══ ANÁLISE IA — DESIGN PREMIUM ═══ */
+        :root {
+            --pro-card-bg: var(--white);
+            --pro-text: var(--text-main);
+            --pro-border: var(--border-color);
+            --pro-header-text: var(--primary-blue);
+            --input-bg: #ffffff;
+            --ia-bg: linear-gradient(135deg, rgba(30, 58, 138, 0.03), rgba(250, 204, 21, 0.03));
+        }
+
+        [data-theme="dark"] {
+            --pro-card-bg: rgba(30, 41, 59, 0.7);
+            --pro-text: #f8fafc;
+            --pro-border: #334155;
+            --pro-header-text: var(--secondary-yellow);
+            --input-bg: #0f172a;
+            --ia-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(253, 224, 71, 0.03));
+        }
+
+        /* Header */
+        .header-section {
+            padding: 28px 0;
+            margin-bottom: 32px;
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--pro-header-text);
+            margin: 0 0 6px;
+            letter-spacing: -0.03em;
+        }
+
+        .header-section p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .header-section .header-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-tag.ml { background: rgba(139, 92, 246, 0.1); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.2); }
+        .header-tag.route { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .header-tag.eco { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+        /* ═══ SECTION DIVIDER ═══ */
+        .section-divider {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 36px 0 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--pro-border);
+        }
+
+        /* ═══ GRID DE CARDS ═══ */
+        .grid-ia-kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 22px;
+            margin-bottom: 28px;
+        }
+
+        .pro-card {
+            background: var(--pro-card-bg);
+            border: 1px solid var(--pro-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .pro-card:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .ai-card {
+            background: var(--ia-bg);
+            border: 1px solid var(--primary-blue);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
+        }
+
+        .ai-card::after {
+            content: '🤖';
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            font-size: 6rem;
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        /* Section Borders */
+        .card-border-green { border-top: 4px solid #10b981; }
+        .card-border-red   { border-top: 4px solid #ef4444; }
+        .card-border-yellow { border-top: 4px solid #f59e0b; }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .title-group h2 {
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+            color: var(--pro-text);
+            font-weight: 700;
+        }
+
+        .badge-icon {
+            background: rgba(30, 58, 138, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .badge-blue   { background: var(--primary-blue); color: white; }
+        .badge-green  { background: #10b981; color: white; }
+        .badge-red    { background: #ef4444; color: white; }
+        .badge-yellow { background: var(--secondary-yellow); color: var(--dark-black); }
+        .badge-dark   { background: var(--dark-black); color: var(--secondary-yellow); }
+
+        /* ═══ MAPA + PAINEL ═══ */
+        .map-container-pro {
+            position: relative;
+            width: 100%;
+            height: 620px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--pro-border);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            margin-top: 24px;
+        }
+
+        #mapa-simulador {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            transition: filter 0.3s ease;
+        }
+
+        [data-theme="dark"] #mapa-simulador {
+            filter: grayscale(0.4) contrast(1.15) invert(100%) hue-rotate(180deg);
+        }
+
+        .control-panel-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 360px;
+            background: var(--pro-card-bg);
+            border: 1px solid var(--pro-border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-height: calc(100% - 32px);
+            overflow-y: auto;
+            backdrop-filter: blur(16px);
+        }
+
+        /* Inputs */
+        .input-group-pro {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .input-group-pro label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-pro {
+            background: var(--input-bg);
+            border: 1px solid var(--pro-border);
+            color: var(--pro-text);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.92rem;
+            transition: all 0.2s;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-pro:focus {
+            border-color: var(--primary-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-blue-glow);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary-blue), #1e40af);
+            color: white;
+            font-weight: 700;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 8px;
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+        }
+
+        /* Autocomplete */
+        .autocomplete-lista {
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            background: var(--pro-card-bg);
+            border: 1px solid var(--primary-blue);
+            border-radius: var(--radius-sm);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1001;
+            margin-top: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            border-bottom: 1px solid var(--pro-border);
+            color: var(--pro-text);
+            transition: all 0.15s;
+        }
+
+        .autocomplete-item:hover {
+            background: var(--primary-blue-glow);
+            color: var(--primary-blue);
+            padding-left: 18px;
+        }
+
+        /* Tabela */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--pro-border);
+            margin-bottom: 24px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: var(--primary-blue) !important;
+            color: white !important;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--pro-border);
+            color: var(--pro-text);
+            background: var(--pro-card-bg);
+            font-size: 0.88rem;
+            transition: background 0.2s;
+        }
+        tr:hover td {
+            background: var(--primary-blue-glow);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ═══ RESPONSIVIDADE ═══ */
+        @media (max-width: 1024px) {
+            .grid-ia-kpis { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .header-section h1 { font-size: 1.5rem; }
+            .control-panel-overlay {
+                position: relative;
+                top: 0; left: 0;
+                width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .map-container-pro {
+                height: auto;
+                display: flex;
+                flex-direction: column-reverse;
+            }
+            #mapa-simulador { height: 380px; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="header-section" role="banner">
+        <h1>Centro de Inteligência & Performance</h1>
+        <p>Análise preditiva com Machine Learning e roteamento logístico inteligente.</p>
+        <div class="header-tags">
+            <span class="header-tag ml" aria-label="Machine Learning">🧠 Machine Learning</span>
+            <span class="header-tag route" aria-label="Roteamento">🛰️ Roteamento OSRM</span>
+            <span class="header-tag eco" aria-label="Ecologia">🌱 Eco-Analytics</span>
+        </div>
+    </div>
+
+    <!-- ═══ MÓDULO 1: PREDIÇÃO IA + RANKING + ALERTAS ═══ -->
+    <div class="section-divider" aria-hidden="true">🤖 Módulo de Inteligência Artificial</div>
+
+    <div class="grid-ia-kpis" role="region" aria-label="Análise de Inteligência Artificial">
+        <section class="pro-card ai-card" aria-label="Predição de custos com IA">
+            <div class="title-group">
+                <span class="badge-icon badge-blue" aria-hidden="true">🤖</span>
+                <h2>Predição de Custos (IA)</h2>
+            </div>
+            <div id="resultado-ia" style="background: var(--input-bg); padding: 18px; border-radius: 10px; border: 1px solid var(--pro-border);">
+                <div style="display: flex; align-items: center; gap: 12px; color: var(--pro-text);">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <span>Sincronizando modelo preditivo...</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pro-card card-border-green" aria-label="Ranking de eco-drivers">
+            <div class="title-group">
+                <span class="badge-icon badge-green" aria-hidden="true">🏆</span>
+                <h2>Top Eco-Drivers</h2>
+            </div>
+            <ul id="lista-ranking" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;" role="list">
+            </ul>
+        </section>
+
+        <section class="pro-card card-border-red" aria-label="Alertas de manutenção">
+            <div class="title-group">
+                <span class="badge-icon badge-red" aria-hidden="true">🚨</span>
+                <h2>Gestão de Riscos</h2>
+            </div>
+            <ul id="lista-alertas" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;" role="list" aria-live="polite">
+            </ul>
+        </section>
+    </div>
+
+    <!-- ═══ MÓDULO 2: TABELA DE EFICIÊNCIA ═══ -->
+    <div class="section-divider" aria-hidden="true">⚡ Relatório de Eficiência Energética</div>
+
+    <section class="pro-card" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;" aria-label="Tabela de eficiência energética">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Ativo Operacional</th>
+                        <th scope="col">Desempenho</th>
+                        <th scope="col">Custo/Km</th>
+                        <th scope="col">Pegada CO₂</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-consumo">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ MÓDULO 3: SIMULADOR DE ROTAS ═══ -->
+    <div class="section-divider" aria-hidden="true">🛰️ Plataforma de Roteamento Inteligente</div>
+
+    <div class="map-container-pro" role="region" aria-label="Simulador de rotas">
+        <div id="mapa-simulador"></div>
+
+        <div class="control-panel-overlay">
+            <div class="title-group" style="margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--pro-border);">
+                <span class="badge-icon badge-dark" aria-hidden="true">🛰️</span>
+                <h2>Simulador de Rotas</h2>
+            </div>
+
+            <div class="input-group-pro">
+                <label for="sim-origem">Ponto de Partida</label>
+                <input type="text" id="sim-origem" class="input-pro" placeholder="Ex: Av. Paulista, São Paulo..." autocomplete="off" aria-describedby="desc-origem">
+                <span id="desc-origem" class="sr-only">Digite o endereço de origem para calcular a rota</span>
+                <div id="sugestoes-origem" class="autocomplete-lista" role="listbox"></div>
+            </div>
+
+            <div class="input-group-pro">
+                <label for="sim-destino">Destino Final</label>
+                <input type="text" id="sim-destino" class="input-pro" placeholder="Ex: Aeroporto de Guarulhos..." autocomplete="off" aria-describedby="desc-destino">
+                <span id="desc-destino" class="sr-only">Digite o endereço de destino para calcular a rota</span>
+                <div id="sugestoes-destino" class="autocomplete-lista" role="listbox"></div>
+            </div>
+
+            <button onclick="calcularViagem()" class="btn-action" aria-label="Calcular rota otimizada entre origem e destino">
+                🗺️ CALCULAR ROTA
+            </button>
+
+            <div id="sim-resultado" style="margin-top: 18px; background: var(--input-bg); padding: 16px; border-radius: 10px; border: 1px solid var(--pro-border); display: none;" role="region" aria-live="polite">
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="js/dashboard.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        let mapaSimulador, camadaLinha, marcadorOrigem, marcadorDestino, marcadorCaminhao;
+        let coordOrigemSalva = null, coordDestinoSalva = null;
+        let timerOrigem, timerDestino, animacaoInterval;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            mapaSimulador = L.map('mapa-simulador', { zoomControl: false }).setView([-23.5614, -46.6564], 11);
+            L.control.zoom({ position: 'topright' }).addTo(mapaSimulador);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+            }).addTo(mapaSimulador);
+
+            configurarAutocomplete('sim-origem', 'sugestoes-origem', true);
+            configurarAutocomplete('sim-destino', 'sugestoes-destino', false);
+        });
+
+        function configurarAutocomplete(inputId, listaId, isOrigem) {
+            const input = document.getElementById(inputId);
+            const lista = document.getElementById(listaId);
+            input.addEventListener('input', function() {
+                if (isOrigem) coordOrigemSalva = null; else coordDestinoSalva = null;
+                clearTimeout(isOrigem ? timerOrigem : timerDestino);
+                const texto = this.value;
+                if (!texto || texto.length < 4) { lista.style.display = 'none'; return; }
+
+                const timer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(texto)}&limit=5`);
+                        const dados = await res.json();
+                        lista.innerHTML = '';
+                        if (dados.length > 0) {
+                            dados.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'autocomplete-item';
+                                div.setAttribute('role', 'option');
+                                div.innerHTML = `📍 ${item.display_name}`;
+                                div.onclick = () => {
+                                    input.value = item.display_name;
+                                    if (isOrigem) coordOrigemSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+                                    else coordDestinoSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+                                    lista.style.display = 'none';
+                                };
+                                lista.appendChild(div);
+                            });
+                            lista.style.display = 'block';
+                        }
+                    } catch (e) { console.error(e); }
+                }, 500);
+                if (isOrigem) timerOrigem = timer; else timerDestino = timer;
+            });
+        }
+
+        async function buscarCoordenadas(end) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(end)}&limit=1`);
+                const d = await res.json();
+                return d.length > 0 ? { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) } : null;
+            } catch (e) { return null; }
+        }
+
+        function iniciarAnimacao(coords) {
+            if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
+            if (animacaoInterval) clearInterval(animacaoInterval);
+            if (!coords || coords.length <= 2) return;
+
+            const icone = L.divIcon({
+                className: 'custom-icon',
+                html: `<div style="background: var(--dark-black); color: var(--secondary-yellow); width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 2px solid var(--white); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🚛</div>`,
+                iconSize: [34, 34], iconAnchor: [17, 17]
+            });
+
+            marcadorCaminhao = L.marker(coords[0], {icon: icone}).addTo(mapaSimulador);
+            let i = 0;
+            animacaoInterval = setInterval(() => {
+                if (i >= coords.length) { clearInterval(animacaoInterval); return; }
+                marcadorCaminhao.setLatLng(coords[i]);
+                i += 3;
+            }, 35);
+        }
+
+        async function calcularViagem() {
+            const tOrigem = document.getElementById('sim-origem').value;
+            const tDestino = document.getElementById('sim-destino').value;
+            if(!tOrigem || !tDestino) return alert("Erro: Defina os pontos de origem e destino.");
+
+            if(camadaLinha) mapaSimulador.removeLayer(camadaLinha);
+            if(marcadorOrigem) mapaSimulador.removeLayer(marcadorOrigem);
+            if(marcadorDestino) mapaSimulador.removeLayer(marcadorDestino);
+            if(marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
+
+            const divRes = document.getElementById('sim-resultado');
+            divRes.style.display = 'block';
+            divRes.innerHTML = `<div style="display: flex; align-items: center; gap: 12px; color: var(--primary-blue); font-weight: 700;"><div class="spinner"></div> Calculando telemetria...</div>`;
+
+            let o = coordOrigemSalva || await buscarCoordenadas(tOrigem);
+            let d = coordDestinoSalva || await buscarCoordenadas(tDestino);
+
+            if (!o || !d) return divRes.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.4rem;">❌</span><p style="color:#ef4444;font-weight:700;font-size:0.85rem;">Coordenadas não localizadas.</p></div>`;
+
+            try {
+                const resposta = await fetch('/api/dashboard/simular_viagem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origem: o, destino: d })
+                });
+
+                const calc = await resposta.json();
+                const isCont = calc.status === "contingencia";
+                const corLinha = isCont ? "#facc15" : "#3b82f6";
+
+                divRes.innerHTML = `
+                    <div style="font-size: 0.72rem; font-weight: 800; color: ${isCont ? '#eab308' : 'var(--primary-blue)'}; text-transform: uppercase; margin-bottom: 14px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
+                        <span aria-hidden="true">${isCont ? '⚠️' : '🛰️'}</span>
+                        ${isCont ? 'Rota Estimada (Offline)' : 'Rota Satélite Validada'}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                        <div style="padding: 12px; background: var(--primary-blue-glow); border-radius: 8px;">
+                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Distância</span>
+                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.distancia_km} km</strong>
+                        </div>
+                        <div style="padding: 12px; background: var(--primary-blue-glow); border-radius: 8px;">
+                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Tempo Est.</span>
+                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.tempo}</strong>
+                        </div>
+                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border-radius: 8px;">
+                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Consumo</span>
+                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.litros} L</strong>
+                        </div>
+                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border-radius: 8px;">
+                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Custo Total</span>
+                            <strong style="font-size: 1.2rem; color: #10b981;">R$ ${calc.custo.toFixed(2)}</strong>
+                        </div>
+                    </div>`;
+
+                camadaLinha = L.polyline(calc.rota_gps, {
+                    color: corLinha, dashArray: isCont ? '8, 8' : '', weight: 5, opacity: 0.9
+                }).addTo(mapaSimulador);
+
+                marcadorOrigem = L.marker([o.lat, o.lng]).addTo(mapaSimulador);
+
+                const iconeDestino = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 12px rgba(239,68,68,0.6);"></div>`,
+                    iconSize: [22, 22], iconAnchor: [11, 11]
+                });
+                marcadorDestino = L.marker([d.lat, d.lng], {icon: iconeDestino}).addTo(mapaSimulador);
+
+                mapaSimulador.fitBounds(camadaLinha.getBounds(), {
+                    paddingBottomRight: [20, 20],
+                    paddingTopLeft: window.innerWidth > 768 ? [400, 20] : [20, 20]
+                });
+
+                if(!isCont) iniciarAnimacao(calc.rota_gps);
+
+            } catch (err) {
+                divRes.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.4rem;">❌</span><p style="color:#ef4444;font-weight:700;font-size:0.85rem;">Erro de comunicação com API OSRM.</p></div>`;
+            }
+        }
+    </script>
+{% endblock %}

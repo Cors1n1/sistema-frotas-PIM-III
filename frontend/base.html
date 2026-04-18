@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light" data-contrast="normal" data-fontsize="normal">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gestão de Frotas Integrado — PIM III UNIP ADS. Monitoramento, IA e sustentabilidade.">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
+    <title>Gestão de Frotas — {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="css/style.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Acessibilidade: Skip Navigation -->
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="logo-container">
+            <div class="logo-box" aria-hidden="true">F</div>
+            <div>
+                <h1 class="logo-title" style="font-size: 1.05rem; color: var(--text-main); margin:0; border:none; padding:0;">Gestão de Frotas</h1>
+                <span class="logo-title" style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">PIM III — UNIP ADS</span>
+            </div>
+        </div>
+        <nav>
+            <a href="/" class="{{ 'active' if request.path == '/' else '' }}" aria-current="{{ 'page' if request.path == '/' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">🚗</span> <span class="nav-text">Veículos</span>
+            </a>
+            <a href="/motoristas.html" class="{{ 'active' if request.path == '/motoristas.html' else '' }}" aria-current="{{ 'page' if request.path == '/motoristas.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">🧑‍✈️</span> <span class="nav-text">Motoristas</span>
+            </a>
+            <a href="/abastecimentos.html" class="{{ 'active' if request.path == '/abastecimentos.html' else '' }}" aria-current="{{ 'page' if request.path == '/abastecimentos.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">⛽</span> <span class="nav-text">Abastecimentos</span>
+            </a>
+            <a href="/manutencoes.html" class="{{ 'active' if request.path == '/manutencoes.html' else '' }}" aria-current="{{ 'page' if request.path == '/manutencoes.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">🔧</span> <span class="nav-text">Manutenções</span>
+            </a>
+            <a href="/dashboard.html" class="{{ 'active' if request.path == '/dashboard.html' else '' }}" aria-current="{{ 'page' if request.path == '/dashboard.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">📊</span> <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="/analise.html" class="{{ 'active' if request.path == '/analise.html' else '' }}" aria-current="{{ 'page' if request.path == '/analise.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">🧠</span> <span class="nav-text">Análise (IA)</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <span style="font-weight:700;">TransLog Soluções</span><br>
+            Sistema Integrado v2.0
+        </div>
+    </aside>
+
+    <main id="main-content" tabindex="-1" role="main">
+        <div class="top-actions">
+            <div class="top-actions-group">
+                <button class="icon-btn" onclick="toggleSidebar()" aria-label="Menu" title="Abrir/Fechar Menu">☰</button>
+            </div>
+            <div class="top-actions-group">
+                <button class="icon-btn" onclick="toggleA11yPanel()" aria-label="Acessibilidade" title="Opções de Acessibilidade">♿</button>
+                <button class="icon-btn" onclick="toggleTheme()" aria-label="Tema" title="Alternar Tema Claro/Escuro">🌙</button>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
+
+    <!-- Painel de Acessibilidade -->
+    <div class="a11y-panel" id="a11y-panel" role="dialog" aria-label="Opções de Acessibilidade">
+        <h3>♿ Acessibilidade</h3>
+        <label class="a11y-option">
+            <input type="checkbox" id="toggle-contrast" onchange="toggleContrast()">
+            Alto Contraste
+        </label>
+        <label class="a11y-option">
+            <input type="checkbox" id="toggle-fontsize" onchange="cycleFontSize()">
+            Texto Ampliado
+        </label>
+        <label class="a11y-option">
+            <input type="checkbox" id="toggle-motion" onchange="toggleReducedMotion()">
+            Reduzir Animações
+        </label>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); text-align: center;">
+            <span style="font-size: 0.7rem; color: var(--text-muted);">VLibras ativo para LIBRAS 🤟</span>
+        </div>
+    </div>
+
+    <!-- VLibras — Tradução em LIBRAS (Governo Federal) -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        // Inicialização robusta do VLibras
+        (function() {
+            function initVLibras() {
+                if (window.VLibras && typeof window.VLibras.Widget === 'function') {
+                    new window.VLibras.Widget('https://vlibras.gov.br/app');
+                } else {
+                    // Tenta novamente em 500ms se o script ainda não carregou
+                    setTimeout(initVLibras, 500);
+                }
+            }
+            if (document.readyState === 'complete') {
+                initVLibras();
+            } else {
+                window.addEventListener('load', initVLibras);
+            }
+        })();
+    </script>
+    <style>
+        /* Força a visibilidade do botão do VLibras acima de tudo */
+        [vw] {
+            z-index: 999999 !important;
+            display: block !important;
+        }
+        [vw].enabled {
+            position: fixed !important;
+        }
+    </style>
+
+    <script>
+        // ─── Tema Light/Dark ───
+        function toggleTheme() {
+            const html = document.documentElement;
+            const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        if(localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        // ─── Sidebar Toggle (Desktop + Mobile) ───
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            if (window.innerWidth <= 768) {
+                sb.classList.toggle('mobile-open');
+            } else {
+                sb.classList.toggle('collapsed');
+            }
+        }
+        // Fecha sidebar mobile ao clicar fora
+        document.addEventListener('click', function(e) {
+            const sb = document.getElementById('sidebar');
+            if (window.innerWidth <= 768 && sb.classList.contains('mobile-open')) {
+                if (!sb.contains(e.target) && !e.target.closest('.icon-btn')) {
+                    sb.classList.remove('mobile-open');
+                }
+            }
+        });
+
+        // ─── Painel de Acessibilidade ───
+        function toggleA11yPanel() {
+            document.getElementById('a11y-panel').classList.toggle('visible');
+        }
+        function toggleContrast() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-contrast');
+            html.setAttribute('data-contrast', current === 'high' ? 'normal' : 'high');
+            localStorage.setItem('contrast', html.getAttribute('data-contrast'));
+        }
+        function cycleFontSize() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-fontsize');
+            if (current === 'normal') html.setAttribute('data-fontsize', 'large');
+            else if (current === 'large') html.setAttribute('data-fontsize', 'xlarge');
+            else html.setAttribute('data-fontsize', 'normal');
+            localStorage.setItem('fontsize', html.getAttribute('data-fontsize'));
+        }
+        function toggleReducedMotion() {
+            document.body.classList.toggle('reduce-motion');
+        }
+
+        // Restaurar preferências
+        if(localStorage.getItem('contrast') === 'high') {
+            document.documentElement.setAttribute('data-contrast', 'high');
+            const cb = document.getElementById('toggle-contrast');
+            if(cb) cb.checked = true;
+        }
+        if(localStorage.getItem('fontsize')) {
+            document.documentElement.setAttribute('data-fontsize', localStorage.getItem('fontsize'));
+        }
+
+        // ─── Toast Notifications ───
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.setAttribute('role', 'status');
+            const icon = type === 'success' ? '✅' : '⚠️';
+            toast.innerHTML = `<span aria-hidden="true">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 4500);
+        }
+
+        window.alert = function(msg) {
+            const type = msg.toLowerCase().includes('erro') || msg.toLowerCase().includes('bloqueio') ? 'error' : 'success';
+            showToast(msg, type);
+        };
+    </script>
+
+    <!-- VanillaTilt 3D (sutil) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            VanillaTilt.init(document.querySelectorAll(".pro-card, .kpi-pro-card, .chart-pro-card, .card"), {
+                max: 2.5,
+                speed: 400,
+                glare: true,
+                "max-glare": 0.06,
+                scale: 1.005
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
