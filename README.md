@@ -266,7 +266,7 @@ A documentação completa está na pasta `documentacao/`:
 
 ## 👥 Equipe
 
-- **Desenvolvimento Backend, Frontend e Banco de Dados** — [Seu Nome]
+- **Desenvolvimento Backend, Frontend e Banco de Dados** — [Victor Corsini]
 
 ---
 
