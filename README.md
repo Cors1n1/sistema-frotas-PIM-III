@@ -1,52 +1,66 @@
 # 🚛 Sistema de Gestão de Frotas — PIM III (ADS)
 
-> **Projeto Integrado Multidisciplinar III** — Análise e Desenvolvimento de Sistemas  
-> Sistema web inteligente para gerenciamento de frotas com Machine Learning e acessibilidade WCAG 2.1
+> **Projeto Integrado Multidisciplinar III** — Análise e Desenvolvimento de Sistemas · UNIP  
+> Sistema web completo com autenticação multi-usuário, Machine Learning e acessibilidade WCAG 2.1
+
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat&logo=flask&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/Licença-Acadêmica-green?style=flat)
 
 ---
 
 ## 📌 Sobre o Projeto
 
-Sistema completo de gestão de frotas empresariais que permite o controle de **veículos**, **motoristas**, **abastecimentos** e **manutenções**, com um módulo de **Inteligência Artificial** para predição de custos e uma interface **acessível** seguindo padrões internacionais.
+Sistema full-stack de gestão de frotas empresariais com controle de **veículos**, **motoristas**, **abastecimentos** e **manutenções**, módulo de **Inteligência Artificial** para predição de custos, simulador de **rotas GPS** e sistema de **login multi-usuário** com roles de acesso.
 
-### Destaques
+### ✨ Destaques
 
-- 🤖 **Machine Learning** — Regressão Linear para prever custos de manutenção com métricas R², MAE e RMSE
-- ♿ **Acessibilidade WCAG 2.1 AA** — Alto Contraste, VLibras (Libras), Ampliação de Fonte
-- 🗺️ **Simulador de Rotas GPS** — Integração com OSRM e Leaflet.js para cálculo de rotas inteligentes
-- 📊 **Dashboard Interativo** — Gráficos dinâmicos com Chart.js e KPIs em tempo real
-- 🌙 **Dark/Light Mode** — Tema adaptativo com preferência salva no navegador
-- 🔒 **Segurança** — Prepared Statements contra SQL Injection, credenciais em `.env`
+| Feature | Descrição |
+|---------|-----------|
+| 🔐 **Autenticação Multi-Usuário** | Flask-Login + Bcrypt com roles `admin` e `operador` |
+| 🤖 **Machine Learning** | Regressão Linear para prever custos de manutenção (R², MAE, RMSE) |
+| ♿ **Acessibilidade WCAG 2.1 AA** | Alto Contraste, VLibras (Libras), Ampliação de Fonte |
+| 🗺️ **Simulador de Rotas GPS** | Integração OSRM + Leaflet.js com fallback offline |
+| 📊 **Dashboard Interativo** | Chart.js com KPIs, rankings e alertas em tempo real |
+| 🌙 **Dark / Light Mode** | Tema adaptativo salvo no localStorage |
+| 🛡️ **Segurança** | Prepared Statements, senhas em hash bcrypt, `@login_required` em todas as rotas |
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Tecnologias
 
 ### Backend
-| Tecnologia | Função |
-|-----------|--------|
-| Python 3.12+ | Linguagem principal |
-| Flask | Framework web (API REST) |
-| PostgreSQL | Banco de dados relacional |
-| Scikit-Learn | Machine Learning (Regressão Linear) |
-| Pandas / NumPy | Análise e manipulação de dados |
-| psycopg2 | Driver de conexão com PostgreSQL |
+| Tecnologia | Versão | Função |
+|-----------|--------|--------|
+| Python | 3.12+ | Linguagem principal |
+| Flask | 3.x | Framework web (API REST + templates) |
+| Flask-Login | 0.6.x | Gerenciamento de sessões autenticadas |
+| Flask-Bcrypt | 1.0.x | Hash seguro de senhas (bcrypt) |
+| Flask-CORS | 5.x | Cross-Origin Resource Sharing |
+| PostgreSQL | 16+ | Banco de dados relacional |
+| psycopg2 | 2.x | Driver de conexão com PostgreSQL |
+| Scikit-Learn | 1.x | Machine Learning (Regressão Linear) |
+| Pandas | 2.x | Manipulação de dados |
+| python-dotenv | 1.x | Carregamento de variáveis de ambiente |
 
 ### Frontend
 | Tecnologia | Função |
 |-----------|--------|
-| HTML5 / CSS3 / JS | Base da interface |
-| Chart.js | Gráficos interativos |
+| HTML5 + Jinja2 | Estrutura e templates com herança |
+| CSS3 (Dark Mode + Glassmorphism) | Design system adaptativo |
+| JavaScript ES6+ | Lógica da interface e chamadas REST |
+| Chart.js 4.x | Gráficos interativos |
 | Leaflet.js | Mapas e rotas GPS |
-| VLibras | Tradução para Libras |
+| VLibras (Gov BR) | Tradução automática para Libras |
 | VanillaTilt.js | Efeitos 3D nos cards |
 
 ### APIs Externas
 | API | Função |
 |-----|--------|
-| OSRM | Roteamento de veículos (GPS) |
+| OSRM | Roteamento de veículos (GPS real) |
 | Nominatim | Geocodificação de endereços |
-| Parallelum FIPE | Consulta de tabela FIPE |
+| Parallelum FIPE | Consulta da tabela FIPE de veículos |
 
 ---
 
@@ -55,38 +69,44 @@ Sistema completo de gestão de frotas empresariais que permite o controle de **v
 ```
 sistema_frotas/
 │
-├── backend/                    # Servidor (Controller + Model)
-│   ├── app.py                  # Controlador principal (rotas REST)
-│   ├── models.py               # Classes POO (Veículo, Motorista, etc.)
-│   ├── ml.py                   # Módulo de Machine Learning
-│   ├── database.py             # Conexão com PostgreSQL
-│   ├── requirements.txt        # Dependências Python
-│   └── .env                    # ⚠️ Credenciais (NÃO versionado)
+├── backend/                        # Camada do Servidor (Controller + Model)
+│   ├── app.py                      # Controlador principal (rotas REST + autenticação)
+│   ├── models.py                   # Classes POO + classe Usuario (Flask-Login)
+│   ├── ml.py                       # Módulo de Machine Learning
+│   ├── database.py                 # Conexão com PostgreSQL
+│   ├── requirements.txt            # Dependências Python
+│   ├── criar_admin.py              # Script para criar o primeiro administrador
+│   └── .env                        # ⚠️ Credenciais (NÃO versionado — ver .gitignore)
 │
-├── frontend/                   # Interface (View)
-│   ├── base.html               # Template base (navbar, footer, acessibilidade)
-│   ├── dashboard.html          # Painel principal com KPIs
-│   ├── analise.html            # Página de IA e simulador de rotas
-│   ├── veiculos.html           # Cadastro de veículos
-│   ├── motoristas.html         # Cadastro de motoristas
-│   ├── abastecimentos.html     # Registro de abastecimentos
-│   ├── manutencoes.html        # Registro de manutenções
+├── frontend/                       # Camada do Cliente (View)
+│   ├── base.html                   # Template base (sidebar, tema, acessibilidade, logout)
+│   ├── login.html                  # Página de autenticação (glassmorphism + dark mode)
+│   ├── usuarios.html               # Painel de gerenciamento de usuários (somente admin)
+│   ├── index.html                  # Veículos + Mapa de Telemetria
+│   ├── motoristas.html             # Gestão de Motoristas
+│   ├── abastecimentos.html         # Controle de Abastecimentos
+│   ├── manutencoes.html            # Engenharia de Manutenção
+│   ├── dashboard.html              # Dashboard Executivo (KPIs + Gráficos)
+│   ├── analise.html                # Análise IA + Simulador de Rotas
 │   ├── css/
-│   │   └── style.css           # Design system (glassmorphism, dark mode)
+│   │   └── style.css               # Design System completo
 │   └── js/
-│       ├── charts.js           # Gráficos Chart.js
-│       ├── dashboard.js        # Lógica do dashboard e IA
-│       └── analise.js          # Simulador de rotas GPS
+│       ├── app.js                  # Lógica de veículos + API FIPE
+│       ├── motoristas.js           # CRUD de motoristas
+│       ├── abastecimentos.js       # CRUD + validação CNH
+│       ├── manutencoes.js          # CRUD de manutenções
+│       ├── dashboard.js            # IA, alertas, ranking, consumo
+│       └── charts.js               # Gráficos Chart.js
 │
-├── documentacao/               # Documentação acadêmica
-│   ├── 01_Estrutura_Banco_de_Dados.md
-│   ├── 02_POO_e_Estrutura_de_Classes.md
+├── documentacao/                   # Documentação Acadêmica
+│   ├── 01_Tabelas_e_Relacionamentos.md
+│   ├── 02_Programacao_Orientada_a_Objetos.md
 │   ├── 03_Machine_Learning_e_Analise.md
-│   ├── 04_UX_UI_e_Frontend.md
+│   ├── 04_Design_UX_UI.md
 │   └── 05_Manual_do_Desenvolvedor.md
 │
-├── .gitignore                  # Arquivos ignorados pelo Git
-└── README.md                   # ← Você está aqui
+├── .gitignore
+└── README.md
 ```
 
 ---
@@ -96,147 +116,198 @@ sistema_frotas/
 ### Pré-requisitos
 
 - **Python 3.10+** instalado
-- **PostgreSQL** instalado e rodando
-- **Git** (opcional, para clonar)
+- **PostgreSQL 14+** instalado e em execução
+- **Git** (para clonar)
 
-### 1️⃣ Clonar o repositório (ou abrir a pasta do projeto)
+### 1️⃣ Clonar o repositório
 
 ```bash
-git clone <url-do-repositorio>
-cd sistema_frotas
+git clone https://github.com/Cors1n1/sistema-frotas-PIM-III.git
+cd sistema-frotas-PIM-III
 ```
 
-### 2️⃣ Criar o banco de dados no PostgreSQL
-
-Abra o **pgAdmin** ou o terminal do PostgreSQL e execute:
-
-```sql
-CREATE DATABASE pim_trab;
-
--- Conectar ao banco criado
-\c pim_trab
-
--- Criar as tabelas
-CREATE TABLE veiculos (
-    id SERIAL PRIMARY KEY,
-    placa VARCHAR(10) UNIQUE NOT NULL,
-    modelo VARCHAR(50) NOT NULL,
-    marca VARCHAR(50) NOT NULL,
-    ano INTEGER NOT NULL,
-    quilometragem INTEGER DEFAULT 0,
-    tipo_veiculo VARCHAR(20) DEFAULT 'Carro',
-    eixos INTEGER DEFAULT 2
-);
-
-CREATE TABLE motoristas (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cnh VARCHAR(20) UNIQUE NOT NULL,
-    categoria_cnh VARCHAR(10) NOT NULL
-);
-
-CREATE TABLE abastecimentos (
-    id SERIAL PRIMARY KEY,
-    veiculo_id INTEGER REFERENCES veiculos(id),
-    motorista_id INTEGER REFERENCES motoristas(id),
-    data_abastecimento DATE NOT NULL,
-    litros DECIMAL(10,2) NOT NULL,
-    valor_total DECIMAL(10,2) NOT NULL,
-    tipo_combustivel VARCHAR(30) NOT NULL,
-    odometro INTEGER NOT NULL
-);
-
-CREATE TABLE manutencoes (
-    id SERIAL PRIMARY KEY,
-    veiculo_id INTEGER REFERENCES veiculos(id),
-    data_manutencao DATE NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    custo DECIMAL(10,2) NOT NULL,
-    descricao TEXT,
-    quilometragem INTEGER NOT NULL
-);
-```
-
-### 3️⃣ Configurar as credenciais (arquivo `.env`)
-
-Crie o arquivo `backend/.env` com suas credenciais do PostgreSQL:
-
-```env
-DB_HOST=localhost
-DB_NAME=pim_trab
-DB_USER=postgres
-DB_PASSWORD=sua_senha_aqui
-```
-
-> ⚠️ **IMPORTANTE:** Este arquivo contém senhas e **nunca** deve ser commitado no Git (já está no `.gitignore`).
-
-### 4️⃣ Instalar as dependências Python
+### 2️⃣ Instalar dependências Python
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 5️⃣ Iniciar o servidor
+### 3️⃣ Criar o banco de dados no PostgreSQL
+
+```sql
+-- Execute no pgAdmin ou psql
+CREATE DATABASE pim_trab;
+
+\c pim_trab
+
+CREATE TABLE veiculos (
+    id            SERIAL       PRIMARY KEY,
+    placa         VARCHAR(10)  UNIQUE NOT NULL,
+    modelo        VARCHAR(100) NOT NULL,
+    marca         VARCHAR(100) NOT NULL,
+    ano           INTEGER      NOT NULL,
+    quilometragem INTEGER      NOT NULL DEFAULT 0,
+    tipo_veiculo  VARCHAR(20)  NOT NULL DEFAULT 'Carro',
+    eixos         INTEGER      DEFAULT 0
+);
+
+CREATE TABLE motoristas (
+    id            SERIAL       PRIMARY KEY,
+    nome          VARCHAR(150) NOT NULL,
+    cnh           VARCHAR(20)  UNIQUE NOT NULL,
+    categoria_cnh VARCHAR(20)  NOT NULL
+);
+
+CREATE TABLE abastecimentos (
+    id                  SERIAL        PRIMARY KEY,
+    veiculo_id          INTEGER       NOT NULL REFERENCES veiculos(id),
+    motorista_id        INTEGER       NOT NULL REFERENCES motoristas(id),
+    data_abastecimento  DATE          NOT NULL,
+    litros              DECIMAL(10,2) NOT NULL,
+    valor_total         DECIMAL(10,2) NOT NULL,
+    tipo_combustivel    VARCHAR(20)   NOT NULL,
+    odometro            INTEGER       NOT NULL
+);
+
+CREATE TABLE manutencoes (
+    id              SERIAL        PRIMARY KEY,
+    veiculo_id      INTEGER       NOT NULL REFERENCES veiculos(id),
+    data_manutencao DATE          NOT NULL,
+    tipo            VARCHAR(20)   NOT NULL,
+    custo           DECIMAL(10,2) NOT NULL,
+    descricao       TEXT          NOT NULL,
+    quilometragem   INTEGER       NOT NULL
+);
+
+-- Tabela de usuários (autenticação)
+CREATE TABLE usuarios (
+    id          SERIAL       PRIMARY KEY,
+    nome        VARCHAR(150) NOT NULL,
+    username    VARCHAR(80)  UNIQUE NOT NULL,
+    senha_hash  VARCHAR(255) NOT NULL,
+    role        VARCHAR(20)  NOT NULL DEFAULT 'operador'
+                             CHECK (role IN ('admin', 'operador')),
+    criado_em   TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_usuarios_username ON usuarios (username);
+```
+
+### 4️⃣ Configurar o arquivo `.env`
+
+Crie o arquivo `backend/.env`:
+
+```env
+DB_HOST=localhost
+DB_NAME=pim_trab
+DB_USER=postgres
+DB_PASSWORD=sua_senha_aqui
+SECRET_KEY=gere_com_python_-c_"import_secrets;print(secrets.token_hex(32))"
+```
+
+> ⚠️ **NUNCA** versione este arquivo. Ele já está no `.gitignore`.
+
+Para gerar uma `SECRET_KEY` segura:
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+### 5️⃣ Criar o primeiro administrador
+
+```bash
+python criar_admin.py
+```
+
+O script solicitará nome, username e senha interativamente. A senha é armazenada como hash bcrypt.
+
+### 6️⃣ Iniciar o servidor
 
 ```bash
 python app.py
 ```
 
-### 6️⃣ Acessar no navegador
+### 7️⃣ Acessar no navegador
 
 ```
-http://localhost:5000
+http://localhost:5000/login
+```
+
+---
+
+## 🔐 Sistema de Autenticação
+
+O sistema utiliza **Flask-Login** para gerenciamento de sessões e **Flask-Bcrypt** para hash seguro de senhas.
+
+### Perfis de Acesso (Roles)
+
+| Role | Permissões |
+|------|-----------|
+| `admin` | Acesso total ao sistema + gerenciar usuários (criar/excluir) |
+| `operador` | Acesso a todas as funcionalidades, exceto gerenciamento de usuários |
+
+### Fluxo de Autenticação
+
+```
+Usuário → POST /login → Valida bcrypt → Flask-Login session → Cookie seguro
+Qualquer rota → @login_required → Redireciona para /login se não autenticado
+APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 ```
 
 ---
 
 ## 📊 Funcionalidades
 
-### Dashboard Principal
-- KPIs em tempo real (total de veículos, motoristas, abastecimentos, manutenções)
-- Gráficos de gastos mensais e distribuição de combustível
-- Alertas de manutenção preventiva (veículos com >10.000 km sem revisão)
-- Ranking de eco-drivers (menor emissão de CO₂)
+### 🏠 Veículos
+- Cadastro com integração à **API FIPE** (marca, modelo, ano)
+- Suporte a **Carro de Passeio** e **Caminhão** (com número de eixos)
+- Cálculo automático de pedágio por tipo de veículo
 
-### Módulo de Inteligência Artificial
-- Previsão de custos de manutenção com **Regressão Linear**
-- Métricas de avaliação: **R²**, **MAE**, **RMSE**
-- Previsões para marcos de **50k**, **100k** e **150k** km
-- Classificação automática de qualidade (Excelente/Bom/Moderado/Fraco)
+### 🧑‍✈️ Motoristas
+- Cadastro com número e **categorias de CNH** (A, B, C, D, E)
+- Validação automática de CNH vs tipo de veículo no abastecimento
 
-### Simulador de Rotas GPS
-- Geocodificação de endereços (nome → coordenadas)
-- Cálculo de rota via OSRM (distância, tempo, custo de combustível)
-- Visualização no mapa com Leaflet.js
-- Fallback offline com cálculo por fórmula geográfica
+### ⛽ Abastecimentos
+- Registro com **validação de odômetro** (não pode diminuir — anti-fraude)
+- **Bloqueio por CNH** inadequada para o tipo de veículo
+- Cálculo de **emissão de CO₂** (litros × 2,3 kg)
 
-### Acessibilidade (WCAG 2.1 AA)
-- **VLibras** — Tradução automática para Libras (Governo Federal)
-- **Alto Contraste** — Modo de cores para baixa visão
-- **Ampliação de Fonte** — Até 30% maior
-- **Redução de Movimento** — Desativa animações
-- **Navegação por Teclado** — Tab, Enter, Escape
-- **ARIA Labels** — Compatível com leitores de tela
+### 🔧 Manutenções
+- Registro de manutenções preventivas e corretivas
+- **Alertas automáticos** para veículos com +10.000 km sem revisão preventiva
+
+### 📊 Dashboard
+- KPIs em tempo real
+- Gráficos com Chart.js (consumo, gastos, distribuição)
+- **Ranking de Eco-Drivers** (menor custo por litro)
+- **Relatório de eficiência** (km/L, R$/km, CO₂ total)
+
+### 🤖 Análise (IA)
+- **Regressão Linear** (Scikit-Learn) para prever custos de manutenção
+- Métricas: R², MAE, RMSE
+- Previsões para 50k, 100k e 150k km
+- **Simulador de Rotas GPS** com OSRM + Leaflet.js
+
+### 👥 Usuários (Admin)
+- Painel exclusivo para administradores
+- Criar novos usuários com role `admin` ou `operador`
+- Excluir usuários (não pode excluir a si mesmo)
 
 ---
 
-## 🏗️ Arquitetura
-
-O sistema segue o padrão **MVC (Model-View-Controller)**:
+## 🏗️ Arquitetura MVC
 
 ```
-┌─────────────┐     HTTP      ┌──────────────┐     SQL       ┌────────────┐
-│  Frontend   │  ◄──────────► │   app.py     │  ◄──────────► │ PostgreSQL │
-│  (View)     │   JSON/HTML   │ (Controller) │  psycopg2     │  (Model)   │
-│             │               │              │               │            │
-│ HTML/CSS/JS │               │ Flask REST   │               │ veiculos   │
-│ Chart.js    │               │ Validações   │               │ motoristas │
-│ Leaflet.js  │               │ Segurança    │               │ abastec.   │
-│ VLibras     │               │              │               │ manuten.   │
-└─────────────┘               │   ml.py      │               └────────────┘
-                              │ (ML Engine)  │
-                              └──────────────┘
+┌─────────────┐    HTTP / Jinja2    ┌─────────────────┐    SQL      ┌────────────┐
+│  Frontend   │  ◄────────────────► │    app.py        │  ◄────────► │ PostgreSQL │
+│   (View)    │     JSON / HTML     │  (Controller)    │  psycopg2   │   (Model)  │
+│             │                     │                  │             │            │
+│ HTML/CSS/JS │                     │ Flask + Login    │             │ veiculos   │
+│ Chart.js    │                     │ @login_required  │             │ motoristas │
+│ Leaflet.js  │                     │ Validações POO   │             │ abastec.   │
+│ VLibras     │                     │                  │             │ manutencoes│
+└─────────────┘                     │    ml.py         │             │ usuarios   │
+                                    │  (ML Engine)     │             └────────────┘
+                                    └─────────────────┘
 ```
 
 ### Pilares da POO Implementados
@@ -244,32 +315,42 @@ O sistema segue o padrão **MVC (Model-View-Controller)**:
 | Pilar | Onde | Exemplo |
 |-------|------|---------|
 | **Encapsulamento** | `Pessoa._nome` | Atributo protegido com `@property` |
-| **Herança** | `Motorista(Pessoa)` | Herda `_id`, `_nome` e `@property nome` |
+| **Herança** | `Motorista(Pessoa)`, `Caminhao(Veiculo)` | Herda atributos e métodos da superclasse |
 | **Polimorfismo** | `calcular_custo_pedagio()` | Carro = R$12,50 fixo / Caminhão = eixos × R$9,80 |
-| **Abstração** | `get_db_connection()` | Esconde complexidade de conexão com o banco |
+| **Abstração** | `Usuario(UserMixin)` | Integração Flask-Login sem expor detalhes internos |
 
 ---
 
-## 📝 Documentação
-
-A documentação completa está na pasta `documentacao/`:
+## 📝 Documentação Completa
 
 | Arquivo | Conteúdo |
 |---------|----------|
-| `01_Estrutura_Banco_de_Dados.md` | Schema SQL, diagrama ER, tipos de dados |
-| `02_POO_e_Estrutura_de_Classes.md` | Hierarquia de classes, diagramas UML |
+| `01_Tabelas_e_Relacionamentos.md` | Schema SQL, diagrama ER, relacionamentos |
+| `02_Programacao_Orientada_a_Objetos.md` | Hierarquia de classes, diagramas UML |
 | `03_Machine_Learning_e_Analise.md` | Algoritmo, pipeline, métricas, fórmulas |
-| `04_UX_UI_e_Frontend.md` | Design system, acessibilidade, responsividade |
-| `05_Manual_do_Desenvolvedor.md` | Setup, rotas API, troubleshooting |
+| `04_Design_UX_UI.md` | Design system, acessibilidade, responsividade |
+| `05_Manual_do_Desenvolvedor.md` | Setup, rotas API, tabela de endpoints, troubleshooting |
+
+---
+
+## ♿ Acessibilidade
+
+- **VLibras** — Tradução automática para Língua Brasileira de Sinais (Gov Federal)
+- **Alto Contraste** — Modo de cores para baixa visão
+- **Ampliação de Fonte** — Até 3 níveis (normal, grande, extra-grande)
+- **Redução de Animações** — Respeita `prefers-reduced-motion`
+- **Navegação por Teclado** — Tab, Enter, Escape, Skip Links
+- **ARIA Labels** — Compatível com leitores de tela (NVDA, JAWS)
 
 ---
 
 ## 👥 Equipe
 
-- **Desenvolvimento Backend, Frontend e Banco de Dados** — [Victor Corsini]
+**Desenvolvimento Backend, Frontend, Banco de Dados e Documentação**  
+Victor Corsini — UNIP ADS · PIM III
 
 ---
 
 ## 📄 Licença
 
-Projeto acadêmico desenvolvido para o PIM III do curso de Análise e Desenvolvimento de Sistemas.
+Projeto acadêmico desenvolvido para o PIM III do curso de Análise e Desenvolvimento de Sistemas — UNIP.
