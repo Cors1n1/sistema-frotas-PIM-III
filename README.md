@@ -18,11 +18,11 @@ Sistema full-stack de gestão de frotas empresariais com controle de **veículos
 
 | Feature | Descrição |
 |---------|-----------|
-| 🔐 **Autenticação Multi-Usuário** | Flask-Login + Bcrypt com roles `admin` e `operador` |
-| 🤖 **Machine Learning** | Regressão Linear para prever custos de manutenção (R², MAE, RMSE) |
+| 🔐 **Autenticação Multi-Usuário** | Flask-Login + Bcrypt com roles `admin` e `operador` (Alta Resiliência VPS) |
+| 🤖 **Machine Learning** | Regressão Linear segmentada (Carros/Caminhões) com R² otimizado |
 | ♿ **Acessibilidade WCAG 2.1 AA** | Alto Contraste, VLibras (Libras), Ampliação de Fonte |
 | 🗺️ **Simulador de Rotas GPS** | Integração OSRM + Leaflet.js com fallback offline |
-| 📊 **Dashboard Interativo** | Chart.js com KPIs, rankings e alertas em tempo real |
+| 📊 **Dashboard Interativo** | Chart.js com KPIs, rankings e Gestão de Riscos Premium UI |
 | 🌙 **Dark / Light Mode** | Tema adaptativo salvo no localStorage |
 | 🛡️ **Segurança** | Prepared Statements, senhas em hash bcrypt, `@login_required` em todas as rotas |
 
@@ -281,11 +281,12 @@ APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 - **Ranking de Eco-Drivers** (menor custo por litro)
 - **Relatório de eficiência** (km/L, R$/km, CO₂ total)
 
-### 🤖 Análise (IA)
-- **Regressão Linear** (Scikit-Learn) para prever custos de manutenção
-- Métricas: R², MAE, RMSE
-- Previsões para 50k, 100k e 150k km
-- **Simulador de Rotas GPS** com OSRM + Leaflet.js
+### 🤖 Análise (IA) & Gestão de Riscos
+- **Regressão Linear Segmentada** (Scikit-Learn) separando predições para Carros e Caminhões.
+- Métricas de avaliação em tempo real: **R², MAE**, indicando a qualidade de confiança do modelo (ex: 'Excelente', 'Fraco').
+- Geração de dados orgânicos no seed simulando degradação real (tendência linear com ruído) para treinos matematicamente viáveis.
+- **Gestão de Riscos (UI Premium)**: Alertas visuais com badges de severidade, parser inteligente que exibe KM excedido e ações rápidas para resolução de riscos.
+- **Simulador de Rotas GPS** com OSRM + Leaflet.js (cálculo de distâncias, tempo estimado e contingência offline).
 
 ### 👥 Usuários (Admin)
 - Painel exclusivo para administradores

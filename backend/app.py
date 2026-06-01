@@ -119,26 +119,33 @@ def pagina_login():
         username = request.form.get('username', '').strip()
         senha    = request.form.get('senha', '')
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE username = %s",
-            (username,)
-        )
-        linha = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE username = %s",
+                (username,)
+            )
+            linha = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-        if linha:
-            usuario = Usuario(*linha)
-            # bcrypt.check_password_hash é resistente a timing attacks
-            if bcrypt.check_password_hash(usuario.senha_hash, senha):
-                login_user(usuario, remember=True)
-                destino = request.args.get('next') or url_for('index')
-                return redirect(destino)
+            if linha:
+                usuario = Usuario(*linha)
+                # bcrypt.check_password_hash é resistente a timing attacks
+                if bcrypt.check_password_hash(usuario.senha_hash, senha):
+                    login_user(usuario, remember=True)
+                    destino = request.args.get('next') or url_for('index')
+                    return redirect(destino)
 
-        # Credenciais inválidas — não revela se username ou senha estão errados
-        flash('Usuário ou senha inválidos.', 'error')
+            # Credenciais inválidas — não revela se username ou senha estão errados
+            flash('Usuário ou senha inválidos.', 'error')
+
+        except Exception as e:
+            # Captura exceções (ex: banco offline, tabela inexistente)
+            # para não dar erro 500 e mostrar a causa do problema
+            flash(f'Erro interno no servidor: {str(e)}', 'error')
+            print(f"Erro no login (VPS): {str(e)}")
 
     return render_template('login.html')
 
