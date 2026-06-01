@@ -13,6 +13,8 @@
 ║  - POST /api/{recurso} → Criar novo registro                             ║
 ║                                                                          ║
 ║  Segurança Implementada:                                                 ║
+║  - Autenticação com Flask-Login (sessões server-side)                    ║
+║  - Senhas armazenadas como hash bcrypt (Flask-Bcrypt)                    ║
 ║  - Prepared Statements (%s) contra SQL Injection                         ║
 ║  - Validação de CNH por tipo de veículo                                  ║
 ║  - Validação anti-fraude de odômetro                                     ║
@@ -26,10 +28,12 @@
 ╚══════════════════════════════════════════════════════════════════════════╝
 """
 
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
 from flask_cors import CORS
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
 from database import get_db_connection
-from models import Veiculo, Manutencao, Motorista, Abastecimento, CarroPasseio, Caminhao
+from models import Veiculo, Manutencao, Motorista, Abastecimento, CarroPasseio, Caminhao, Usuario
 from ml import AnalisadorFrotas
 import os
 import urllib.request
@@ -41,41 +45,162 @@ import math
 # CONFIGURAÇÃO DO FLASK
 # ═══════════════════════════════════════════════════════════════
 #
-# O Flask precisa saber onde estão os templates HTML e os arquivos
-# estáticos (CSS, JS, imagens). Como o frontend fica em uma pasta
-# separada (../frontend), configuramos manualmente os caminhos.
-#
 # template_folder: onde o Jinja2 procura os .html
 # static_folder:   onde o Flask serve CSS/JS/imagens
 # static_url_path: URL base para os estáticos ('' = raiz)
+# secret_key:      obrigatória para sessions e Flask-Login (lida do .env)
 pasta_frontend = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 app = Flask(__name__, template_folder=pasta_frontend, static_folder=pasta_frontend, static_url_path='')
-CORS(app)  # Permite requisições cross-origin (necessário para APIs)
+app.secret_key = os.getenv('SECRET_KEY', 'dev-fallback-key-change-in-production')
+CORS(app)
+
+# ─── Flask-Bcrypt (hash de senhas) ───
+bcrypt = Bcrypt(app)
+
+# ─── Flask-Login ───
+login_manager = LoginManager(app)
+login_manager.login_view = 'pagina_login'          # Rota de redirecionamento quando não autenticado
+login_manager.login_message = 'Faça login para acessar o sistema.'
+login_manager.login_message_category = 'info'
+
+
+@login_manager.user_loader
+def carregar_usuario(user_id):
+    """
+    Callback obrigatório do Flask-Login.
+    Chamado a cada requisição para recarregar o usuário da sessão.
+    Busca o usuário pelo ID armazenado no cookie de sessão.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE id = %s",
+        (int(user_id),)
+    )
+    linha = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if linha:
+        return Usuario(*linha)
+    return None
+
+
+@login_manager.unauthorized_handler
+def acesso_nao_autorizado():
+    """
+    Redireciona para login quando a rota exige autenticação.
+    Requisições de API (Accept: application/json) recebem 401 em vez de redirect.
+    """
+    if request.is_json or 'application/json' in request.headers.get('Accept', ''):
+        return jsonify({"erro": "Autenticação necessária."}), 401
+    return redirect(url_for('pagina_login'))
 
 # ==========================================
-# ROTAS DO FRONTEND (Fim de abrir HTML na mão)
+# ROTAS DE AUTENTICAÇÃO
 # ==========================================
+
+@app.route('/login', methods=['GET', 'POST'])
+def pagina_login():
+    """
+    GET  /login  → Exibe o formulário de login.
+    POST /login  → Valida credenciais e cria sessão autenticada.
+
+    Fluxo de autenticação:
+    1. Busca usuário pelo username no banco de dados.
+    2. Compara a senha digitada com o hash bcrypt armazenado.
+    3. Se válido, chama login_user() que gera o cookie de sessão.
+    4. Redireciona para o destino original (next) ou para a raiz.
+    """
+    # Se já autenticado, redireciona direto para o sistema
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        senha    = request.form.get('senha', '')
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE username = %s",
+            (username,)
+        )
+        linha = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if linha:
+            usuario = Usuario(*linha)
+            # bcrypt.check_password_hash é resistente a timing attacks
+            if bcrypt.check_password_hash(usuario.senha_hash, senha):
+                login_user(usuario, remember=True)
+                destino = request.args.get('next') or url_for('index')
+                return redirect(destino)
+
+        # Credenciais inválidas — não revela se username ou senha estão errados
+        flash('Usuário ou senha inválidos.', 'error')
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Encerra a sessão do usuário e redireciona para o login."""
+    logout_user()
+    return redirect(url_for('pagina_login'))
+
+
+# ==========================================
+# ROTAS DO FRONTEND (protegidas por login)
+# ==========================================
+
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 @app.route('/manutencoes.html')
+@login_required
 def manutencoes_page():
     return render_template('manutencoes.html')
 
 @app.route('/dashboard.html')
+@login_required
 def dashboard_page():
     return render_template('dashboard.html')
 
 @app.route('/analise.html')
+@login_required
 def analise_page():
     return render_template('analise.html')
+
+@app.route('/motoristas.html')
+@login_required
+def motoristas_page():
+    return render_template('motoristas.html')
+
+@app.route('/abastecimentos.html')
+@login_required
+def abastecimentos_page():
+    return render_template('abastecimentos.html')
+
+@app.route('/usuarios.html')
+@login_required
+def usuarios_page():
+    """Painel de gerenciamento de usuários — acessível apenas por admins."""
+    if not current_user.is_admin():
+        flash('Acesso restrito a administradores.', 'error')
+        return redirect(url_for('index'))
+    return render_template('usuarios.html')
+
 
 # ==========================================
 # ROTAS DA API (Backend)
 # ==========================================
 
 @app.route('/api/veiculos', methods=['GET', 'POST'])
+@login_required
 def gerenciar_veiculos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -120,6 +245,7 @@ def gerenciar_veiculos():
 
 
 @app.route('/api/manutencoes', methods=['GET', 'POST'])
+@login_required
 def gerenciar_manutencoes():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -147,6 +273,7 @@ def gerenciar_manutencoes():
             conn.close()
 
 @app.route('/api/dashboard/previsao', methods=['GET'])
+@login_required
 def obter_previsao():
     conn = get_db_connection()
     try:
@@ -157,16 +284,9 @@ def obter_previsao():
         return jsonify({"erro": str(e)}), 500
     finally:
         conn.close()
-        
-@app.route('/motoristas.html')
-def motoristas_page():
-    return render_template('motoristas.html')
-
-@app.route('/abastecimentos.html')
-def abastecimentos_page():
-    return render_template('abastecimentos.html')
 
 @app.route('/api/motoristas', methods=['GET', 'POST'])
+@login_required
 def gerenciar_motoristas():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -199,6 +319,7 @@ def gerenciar_motoristas():
     # Rota para registro de novos abastecimentos com atualização de odômetro
 
 @app.route('/api/abastecimentos', methods=['GET', 'POST'])
+@login_required
 def gerenciar_abastecimentos():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -272,6 +393,7 @@ def gerenciar_abastecimentos():
             conn.close()
 
 @app.route('/api/dashboard/alertas', methods=['GET'])
+@login_required
 def obter_alertas_revisao():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -302,6 +424,7 @@ def obter_alertas_revisao():
     return jsonify(alertas)
 
 @app.route('/api/dashboard/consumo', methods=['GET'])
+@login_required
 def obter_relatorio_consumo():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -351,6 +474,7 @@ def obter_relatorio_consumo():
 # Adicione esta rota no backend/app.py
 
 @app.route('/api/dashboard/ranking', methods=['GET'])
+@login_required
 def obter_ranking_motoristas():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -393,6 +517,7 @@ def obter_ranking_motoristas():
     return jsonify(ranking)
 
 @app.route('/api/dashboard/simular_viagem', methods=['POST'])
+@login_required
 def simular_viagem():
     dados = request.get_json()
     origem = dados.get('origem')   # dict com lat, lng
@@ -498,6 +623,118 @@ def simular_viagem():
         "preco_litro": round(preco_medio, 2),
         "rota_gps": coordenadas_rota
     })
+
+# ==========================================
+# API DE USUÁRIOS (somente admin)
+# ==========================================
+
+@app.route('/api/usuarios', methods=['GET'])
+@login_required
+def listar_usuarios():
+    """
+    GET /api/usuarios → Retorna todos os usuários cadastrados.
+    Acessível apenas por administradores.
+    """
+    if not current_user.is_admin():
+        return jsonify({"erro": "Acesso negado."}), 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nome, username, senha_hash, role FROM usuarios ORDER BY id ASC")
+    linhas = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify([Usuario(*l).to_dict() for l in linhas])
+
+
+@app.route('/api/usuarios', methods=['POST'])
+@login_required
+def criar_usuario():
+    """
+    POST /api/usuarios → Cria um novo usuário com senha hashed.
+    Acessível apenas por administradores.
+
+    Corpo JSON esperado:
+        nome (str)     : Nome de exibição
+        username (str) : Login único
+        senha (str)    : Senha em texto puro (será hasheada aqui)
+        role (str)     : 'admin' ou 'operador'
+    """
+    if not current_user.is_admin():
+        return jsonify({"erro": "Acesso negado."}), 403
+
+    dados = request.get_json()
+    nome     = dados.get('nome', '').strip()
+    username = dados.get('username', '').strip()
+    senha    = dados.get('senha', '')
+    role     = dados.get('role', 'operador')
+
+    if not nome or not username or not senha:
+        return jsonify({"erro": "Nome, username e senha são obrigatórios."}), 400
+
+    if role not in ('admin', 'operador'):
+        return jsonify({"erro": "Role inválido. Use 'admin' ou 'operador'."}), 400
+
+    # Gera o hash bcrypt — custo padrão 12 rounds
+    senha_hash = bcrypt.generate_password_hash(senha).decode('utf-8')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO usuarios (nome, username, senha_hash, role) VALUES (%s, %s, %s, %s)",
+            (nome, username, senha_hash, role)
+        )
+        conn.commit()
+        return jsonify({"mensagem": f"Usuário '{username}' criado com sucesso!"}), 201
+    except Exception as e:
+        conn.rollback()
+        # psycopg2 retorna IntegrityError quando o username já existe (UNIQUE)
+        if 'unique' in str(e).lower() or 'duplicado' in str(e).lower():
+            return jsonify({"erro": f"Username '{username}' já está em uso."}), 409
+        return jsonify({"erro": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/usuarios/<int:usuario_id>', methods=['DELETE'])
+@login_required
+def excluir_usuario(usuario_id):
+    """
+    DELETE /api/usuarios/<id> → Remove um usuário.
+    - Apenas admins podem excluir usuários.
+    - Um admin não pode excluir a si mesmo.
+    """
+    if not current_user.is_admin():
+        return jsonify({"erro": "Acesso negado."}), 403
+
+    if usuario_id == current_user.id:
+        return jsonify({"erro": "Você não pode excluir sua própria conta."}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM usuarios WHERE id = %s RETURNING id", (usuario_id,))
+        deletado = cursor.fetchone()
+        if not deletado:
+            return jsonify({"erro": "Usuário não encontrado."}), 404
+        conn.commit()
+        return jsonify({"mensagem": "Usuário excluído com sucesso."}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"erro": str(e)}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/me', methods=['GET'])
+@login_required
+def obter_usuario_atual():
+    """Retorna os dados do usuário logado (usado pelo frontend)."""
+    return jsonify(current_user.to_dict())
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

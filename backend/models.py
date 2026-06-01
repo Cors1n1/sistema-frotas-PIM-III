@@ -336,3 +336,55 @@ class Manutencao:
             "tipo": self.tipo, "custo": self.custo,
             "descricao": self.descricao, "quilometragem": self.quilometragem
         }
+
+
+# ═══════════════════════════════════════════════════════════════
+# CLASSE: Usuario (Autenticação Multi-Usuário — Flask-Login)
+# ═══════════════════════════════════════════════════════════════
+
+from flask_login import UserMixin
+
+class Usuario(UserMixin):
+    """
+    Representa um usuário autenticado do sistema.
+
+    Herda de UserMixin (Flask-Login) que fornece automaticamente os
+    métodos e propriedades exigidos pelo framework de autenticação:
+    - is_authenticated, is_active, is_anonymous → controlam o estado da sessão
+    - get_id() → retorna str(self.id), usado pelo Flask-Login para recarregar
+      o usuário da sessão a cada requisição via user_loader.
+
+    Perfis (roles):
+        'admin'    → acesso total, incluindo gerenciar usuários
+        'operador' → acesso ao sistema, sem gerenciar usuários
+
+    ENCAPSULAMENTO:
+        O atributo `senha_hash` nunca é exposto no to_dict() por segurança.
+
+    Attributes:
+        id (int): PK da tabela usuarios.
+        nome (str): Nome completo de exibição.
+        username (str): Login único (sem espaços).
+        senha_hash (str): Hash bcrypt da senha (nunca texto puro).
+        role (str): Perfil do usuário ('admin' ou 'operador').
+    """
+
+    def __init__(self, id, nome, username, senha_hash, role='operador'):
+        self.id = id
+        self.nome = nome
+        self.username = username
+        self.senha_hash = senha_hash  # Hash bcrypt — nunca a senha real
+        self.role = role
+
+    def is_admin(self):
+        """Verifica se o usuário tem perfil de administrador."""
+        return self.role == 'admin'
+
+    def to_dict(self):
+        """Serializa para JSON — senha_hash NUNCA é incluído."""
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "username": self.username,
+            "role": self.role
+        }

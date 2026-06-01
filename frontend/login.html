@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light" data-contrast="normal" data-fontsize="normal">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login seguro — Sistema de Gestão de Frotas PIM III UNIP ADS.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
+    <title>Login — Gestão de Frotas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ═══ RESET E BASE ═══ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary-blue: #1e3a8a;
+            --primary-blue-hover: #1e40af;
+            --primary-blue-glow: rgba(30, 58, 138, 0.2);
+            --secondary-yellow: #facc15;
+            --light-bg: #f1f5f9;
+            --white: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --glass-bg: rgba(255, 255, 255, 0.82);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --danger: #ef4444;
+            --success: #10b981;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary-blue: #60a5fa;
+            --primary-blue-hover: #93bbfd;
+            --primary-blue-glow: rgba(96, 165, 250, 0.15);
+            --secondary-yellow: #fde047;
+            --light-bg: #0f172a;
+            --white: #1e293b;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.75);
+            --glass-border: rgba(51, 65, 85, 0.6);
+        }
+
+        [data-contrast="high"] {
+            --primary-blue: #0000ee;
+            --text-main: #000;
+            --text-muted: #333;
+            --border-color: #000;
+            --light-bg: #fff;
+            --white: #fff;
+        }
+        [data-theme="dark"][data-contrast="high"] {
+            --primary-blue: #6db3f8;
+            --text-main: #fff;
+            --text-muted: #ccc;
+            --border-color: #fff;
+            --light-bg: #000;
+            --white: #111;
+        }
+
+        html { scroll-behavior: smooth; font-size: 16px; }
+        [data-fontsize="large"]  { font-size: 18px !important; }
+        [data-fontsize="xlarge"] { font-size: 20px !important; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-bg);
+            position: relative;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.4s ease;
+        }
+
+        /* Fundo animado */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 35%, #082f49 65%, #0f172a 100%);
+            z-index: 0;
+        }
+        [data-theme="light"] body::before {
+            background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 35%, #f0fdf4 65%, #f8fafc 100%);
+        }
+
+        /* Bolhas decorativas */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            z-index: 0;
+            animation: blobFloat 12s ease-in-out infinite alternate;
+        }
+        .bg-blob-1 { width: 500px; height: 500px; background: #3b82f6; top: -150px; left: -150px; animation-delay: 0s; }
+        .bg-blob-2 { width: 400px; height: 400px; background: #facc15; bottom: -100px; right: -100px; animation-delay: -4s; }
+        .bg-blob-3 { width: 300px; height: 300px; background: #10b981; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -8s; }
+
+        @keyframes blobFloat {
+            from { transform: scale(1) translate(0, 0); }
+            to   { transform: scale(1.15) translate(30px, -20px); }
+        }
+        .bg-blob-3 { animation: blobFloat3 14s ease-in-out infinite alternate; }
+        @keyframes blobFloat3 {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to   { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        /* ═══ CONTAINER PRINCIPAL ═══ */
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══ CARD DE LOGIN ═══ */
+        .login-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 40px 36px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        /* ─── Cabeçalho ─── */
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 68px;
+            height: 68px;
+            background: linear-gradient(135deg, var(--secondary-yellow), #f59e0b);
+            border-radius: 20px;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35); }
+            50%       { box-shadow: 0 8px 32px rgba(245, 158, 11, 0.55); }
+        }
+
+        .login-header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            border: none;
+            padding: 0;
+        }
+
+        .login-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* ─── Mensagem de erro (flash) ─── */
+        .flash-msg {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-left: 4px solid var(--danger);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--danger);
+            animation: fadeInUp 0.3s forwards;
+        }
+        .flash-msg[data-type="success"] {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+            border-left-color: var(--success);
+            color: var(--success);
+        }
+
+        /* ─── Campos do formulário ─── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 13px 14px 13px 44px;
+            background: var(--white);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-main);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px var(--primary-blue-glow);
+        }
+
+        .form-control::placeholder { color: var(--text-muted); opacity: 0.7; }
+
+        /* Toggle de visibilidade da senha */
+        .toggle-senha {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-muted);
+            padding: 4px;
+            transition: color var(--transition-fast);
+            border-radius: 4px;
+        }
+        .toggle-senha:hover { color: var(--primary-blue); }
+        .toggle-senha:focus-visible { outline: 2px solid var(--primary-blue); }
+
+        /* ─── Botão submit ─── */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .btn-login:hover:not(:disabled) {
+            background: var(--primary-blue-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--primary-blue-glow);
+        }
+        .btn-login:hover:not(:disabled)::after { opacity: 1; }
+        .btn-login:active:not(:disabled) { transform: translateY(0); }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-login .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── Rodapé do card ─── */
+        .login-footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .login-footer strong {
+            color: var(--text-main);
+            display: block;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        /* ─── Barra de ferramentas ─── */
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .tool-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(12px);
+            transition: all var(--transition-fast);
+        }
+        .tool-btn:hover { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
+        .tool-btn:focus-visible { outline: 3px solid var(--primary-blue); outline-offset: 2px; }
+
+        /* ─── Responsividade ─── */
+        @media (max-width: 480px) {
+            .login-card { padding: 28px 20px; border-radius: var(--radius-lg); }
+            .login-wrapper { padding: 16px; }
+        }
+
+        /* ─── Acessibilidade ─── */
+        *:focus-visible {
+            outline: 3px solid var(--primary-blue);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ─── Skip link ─── */
+        .skip-link {
+            position: absolute; top: -100%; left: 16px;
+            background: var(--primary-blue); color: #fff;
+            padding: 12px 24px; border-radius: 8px;
+            z-index: 10000; font-weight: 700; text-decoration: none;
+            transition: top 0.3s;
+        }
+        .skip-link:focus { top: 16px; }
+    </style>
+</head>
+<body>
+    <a href="#login-form" class="skip-link">Pular para o formulário de login</a>
+
+    <!-- Decoração de fundo -->
+    <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+    <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
+    <div class="bg-blob bg-blob-3" aria-hidden="true"></div>
+
+    <!-- Botões de utilidade -->
+    <div class="toolbar" role="toolbar" aria-label="Preferências de visualização">
+        <button class="tool-btn" onclick="toggleTheme()" id="btn-theme" aria-label="Alternar tema claro/escuro" title="Alternar Tema">🌙</button>
+        <button class="tool-btn" onclick="toggleContrast()" id="btn-contrast" aria-label="Ativar alto contraste" title="Alto Contraste">◐</button>
+    </div>
+
+    <div class="login-wrapper" role="main">
+        <div class="login-card">
+            <!-- Cabeçalho -->
+            <div class="login-header">
+                <div class="login-logo" role="img" aria-label="Logo Gestão de Frotas">🚚</div>
+                <h1>Gestão de Frotas</h1>
+                <p>PIM III — UNIP ADS · TransLog Soluções</p>
+            </div>
+
+            <!-- Mensagens flash do servidor -->
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-msg" data-type="{{ category }}" role="alert" aria-live="assertive">
+                            <span aria-hidden="true">{{ '⚠️' if category == 'error' else 'ℹ️' }}</span>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Formulário de login -->
+            <form id="login-form" method="POST" action="/login" novalidate aria-label="Formulário de login">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon" aria-hidden="true">👤</span>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            class="form-control"
+                            placeholder="Digite seu usuário"
+                            autocomplete="username"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            required
+                            aria-required="true"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon" aria-hidden="true">🔒</span>
+                        <input
+                            type="password"
+                            id="senha"
+                            name="senha"
+                            class="form-control"
+                            placeholder="Digite sua senha"
+                            autocomplete="current-password"
+                            required
+                            aria-required="true"
+                        >
+                        <button
+                            type="button"
+                            class="toggle-senha"
+                            id="toggle-senha-btn"
+                            aria-label="Mostrar ou ocultar senha"
+                            title="Mostrar/ocultar senha"
+                        >👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="btn-login" aria-label="Entrar no sistema">
+                    <span class="spinner" id="spinner" aria-hidden="true"></span>
+                    <span id="btn-text">🔐 Entrar</span>
+                </button>
+            </form>
+
+            <!-- Rodapé informativo -->
+            <div class="login-footer">
+                <strong>TransLog Soluções</strong>
+                Sistema Integrado v2.1 · Acesso restrito a usuários autorizados
+            </div>
+        </div>
+    </div>
+
+    <!-- VLibras -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        (function() {
+            function initVLibras() {
+                if (window.VLibras && typeof window.VLibras.Widget === 'function') {
+                    new window.VLibras.Widget('https://vlibras.gov.br/app');
+                } else {
+                    setTimeout(initVLibras, 500);
+                }
+            }
+            if (document.readyState === 'complete') initVLibras();
+            else window.addEventListener('load', initVLibras);
+        })();
+    </script>
+    <style>
+        [vw] { z-index: 999999 !important; display: block !important; }
+        [vw].enabled { position: fixed !important; }
+    </style>
+
+    <script>
+        // ─── Tema ───
+        function toggleTheme() {
+            const html = document.documentElement;
+            const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.getElementById('btn-theme').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('btn-theme').textContent = '☀️';
+            }
+        })();
+
+        // ─── Alto Contraste ───
+        function toggleContrast() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-contrast');
+            const next = current === 'high' ? 'normal' : 'high';
+            html.setAttribute('data-contrast', next);
+            localStorage.setItem('contrast', next);
+        }
+        if (localStorage.getItem('contrast') === 'high') {
+            document.documentElement.setAttribute('data-contrast', 'high');
+        }
+
+        // ─── Toggle visibilidade da senha ───
+        document.getElementById('toggle-senha-btn').addEventListener('click', function() {
+            const senhaInput = document.getElementById('senha');
+            const isPassword = senhaInput.type === 'password';
+            senhaInput.type = isPassword ? 'text' : 'password';
+            this.textContent = isPassword ? '🙈' : '👁️';
+            this.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+        });
+
+        // ─── Loading state no submit ───
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            const btn = document.getElementById('btn-login');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btn-text');
+
+            // Validação simples client-side
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('senha').value;
+            if (!user || !pass) {
+                e.preventDefault();
+                // Foca no primeiro campo vazio
+                if (!user) document.getElementById('username').focus();
+                else document.getElementById('senha').focus();
+                return;
+            }
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Entrando...';
+        });
+
+        // ─── Auto-focar o campo de usuário ───
+        window.addEventListener('DOMContentLoaded', function() {
+            const userField = document.getElementById('username');
+            if (userField && !userField.value) userField.focus();
+        });
+    </script>
+</body>
+</html>

@@ -60,6 +60,8 @@ O **Sistema de Gestão de Frotas Integrado** é uma aplicação web full-stack d
 | Python           | 3.x       | Backend     | Linguagem principal do servidor               |
 | Flask            | 3.x       | Backend     | Framework web (rotas, templates, API REST)    |
 | Flask-CORS       | 5.x       | Backend     | Permitir requisições cross-origin             |
+| Flask-Login      | 0.6.x     | Backend     | Gerenciamento de sessões autenticadas          |
+| Flask-Bcrypt     | 1.0.x     | Backend     | Hash seguro de senhas (algoritmo bcrypt)       |
 | psycopg2-binary  | 2.x       | Backend     | Driver nativo para PostgreSQL                 |
 | python-dotenv    | 1.x       | Backend     | Carregamento de variáveis de ambiente (.env)  |
 | Pandas           | 2.x       | Backend     | Manipulação de dados e integração SQL→ML      |
@@ -83,14 +85,18 @@ sistema_frotas/
 │
 ├── backend/                        # Camada do Servidor
 │   ├── .env                        # Variáveis de ambiente (NÃO versionar!)
-│   ├── app.py                      # Controlador principal (446 linhas)
-│   ├── models.py                   # Classes POO (111 linhas)
-│   ├── database.py                 # Conexão com PostgreSQL (15 linhas)
-│   ├── ml.py                       # Módulo de Machine Learning (39 linhas)
-│   └── requirements.txt            # Dependências Python
+│   ├── app.py                      # Controlador principal (com autenticação)
+│   ├── models.py                   # Classes POO + classe Usuario (Flask-Login)
+│   ├── database.py                 # Conexão com PostgreSQL
+│   ├── ml.py                       # Módulo de Machine Learning
+│   ├── requirements.txt            # Dependências Python (incl. Flask-Login, Bcrypt)
+│   ├── criar_tabela_usuarios.sql   # [NOVO] Script DDL da tabela de usuários
+│   └── criar_admin.py              # [NOVO] Script para criar o primeiro admin
 │
 ├── frontend/                       # Camada do Cliente
-│   ├── base.html                   # Template base (sidebar, tema, toast)
+│   ├── base.html                   # Template base (com info de usuário + logout)
+│   ├── login.html                  # [NOVO] Página de autenticação
+│   ├── usuarios.html               # [NOVO] Painel de gerenciamento de usuários
 │   ├── index.html                  # Veículos + Mapa de Telemetria
 │   ├── motoristas.html             # Gestão de Motoristas
 │   ├── abastecimentos.html         # Controle de Abastecimentos
@@ -99,15 +105,15 @@ sistema_frotas/
 │   ├── analise.html                # Análise IA + Simulador de Rotas
 │   │
 │   ├── css/
-│   │   └── style.css               # Design System completo (202 linhas)
+│   │   └── style.css               # Design System completo (com estilos de login)
 │   │
 │   └── js/
-│       ├── app.js                  # Lógica de veículos + API FIPE (161 linhas)
-│       ├── motoristas.js           # CRUD de motoristas (81 linhas)
-│       ├── abastecimentos.js       # CRUD + validação CNH (146 linhas)
-│       ├── manutencoes.js          # CRUD de manutenções (87 linhas)
-│       ├── dashboard.js            # IA, alertas, ranking, consumo (169 linhas)
-│       └── charts.js               # Gráficos Chart.js + KPIs (118 linhas)
+│       ├── app.js                  # Lógica de veículos + API FIPE
+│       ├── motoristas.js           # CRUD de motoristas
+│       ├── abastecimentos.js       # CRUD + validação CNH
+│       ├── manutencoes.js          # CRUD de manutenções
+│       ├── dashboard.js            # IA, alertas, ranking, consumo
+│       └── charts.js               # Gráficos Chart.js + KPIs
 │
 └── documentacao/                   # Documentação do Projeto (esta pasta)
     ├── 01_Tabelas_e_Relacionamentos.md
@@ -132,29 +138,36 @@ sistema_frotas/
 ### 5.4.2 Passo a Passo para Execução
 
 ```bash
-# 1. CLONAR OU ACESSAR O PROJETO
-cd c:\Users\Corsini\Desktop\sistema_frotas
+# 1. CLONAR O REPOSITÓRIO
+git clone https://github.com/Cors1n1/sistema-frotas-PIM-III.git
+cd sistema-frotas-PIM-III
 
 # 2. INSTALAR DEPENDÊNCIAS PYTHON
 cd backend
 pip install -r requirements.txt
 
 # 3. CONFIGURAR O BANCO DE DADOS
-# Criar o banco "pim_trab" no PostgreSQL com as tabelas definidas
-# no documento 01_Tabelas_e_Relacionamentos.md (scripts DDL)
+# Criar o banco "pim_trab" no PostgreSQL com as tabelas:
+# (ver documento 01_Tabelas_e_Relacionamentos.md para as demais)
+psql -U postgres -c "CREATE DATABASE pim_trab;"
+psql -U postgres -d pim_trab -f criar_tabela_usuarios.sql
 
 # 4. CONFIGURAR O ARQUIVO .env
-# Criar/editar o arquivo backend/.env com:
+# Criar o arquivo backend/.env com:
 #   DB_HOST=localhost
 #   DB_NAME=pim_trab
 #   DB_USER=postgres
 #   DB_PASSWORD=<sua_senha>
+#   SECRET_KEY=<chave_segura_gerada_com_secrets.token_hex(32)>
 
-# 5. INICIAR O SERVIDOR
+# 5. CRIAR O PRIMEIRO ADMINISTRADOR
+python criar_admin.py
+
+# 6. INICIAR O SERVIDOR
 python app.py
 
-# 6. ACESSAR O SISTEMA
-# Abrir o navegador em: http://localhost:5000
+# 7. ACESSAR O SISTEMA
+# Abrir o navegador em: http://localhost:5000/login
 ```
 
 ### 5.4.3 Script de Criação do Banco de Dados
@@ -213,32 +226,40 @@ O backend expõe as seguintes endpoints:
 
 ### 5.5.1 Rotas de Páginas (Frontend)
 
-| Método | Rota                | Descrição                    |
-|--------|---------------------|------------------------------|
-| GET    | `/`                 | Página de Veículos (index)   |
-| GET    | `/motoristas.html`  | Página de Motoristas         |
-| GET    | `/abastecimentos.html` | Página de Abastecimentos  |
-| GET    | `/manutencoes.html` | Página de Manutenções        |
-| GET    | `/dashboard.html`   | Dashboard Executivo          |
-| GET    | `/analise.html`     | Análise IA + Simulador       |
+| Método | Rota                   | Autenticação | Descrição                    |
+|--------|------------------------|--------------|------------------------------|
+| GET    | `/login`               | Pública      | Página de login               |
+| POST   | `/login`               | Pública      | Processar credenciais         |
+| GET    | `/logout`              | Requer login | Encerrar sessão              |
+| GET    | `/`                    | Requer login | Página de Veículos (index)   |
+| GET    | `/motoristas.html`     | Requer login | Página de Motoristas         |
+| GET    | `/abastecimentos.html` | Requer login | Página de Abastecimentos     |
+| GET    | `/manutencoes.html`    | Requer login | Página de Manutenções        |
+| GET    | `/dashboard.html`      | Requer login | Dashboard Executivo          |
+| GET    | `/analise.html`        | Requer login | Análise IA + Simulador       |
+| GET    | `/usuarios.html`       | Somente Admin| Painel de Usuários          |
 
 ### 5.5.2 Rotas da API REST (Dados)
 
-| Método | Rota                           | Entrada (JSON)                  | Saída (JSON)                    |
-|--------|--------------------------------|---------------------------------|---------------------------------|
-| GET    | `/api/veiculos`                | —                               | Lista de veículos com pedágio   |
-| POST   | `/api/veiculos`                | placa, modelo, marca, ano, km, tipo, eixos | {mensagem} ou {erro} |
-| GET    | `/api/motoristas`              | —                               | Lista de motoristas com CNH     |
-| POST   | `/api/motoristas`              | nome, cnh, categoria_cnh        | {mensagem} ou {erro}            |
-| GET    | `/api/abastecimentos`          | —                               | Lista com emissões CO₂          |
-| POST   | `/api/abastecimentos`          | veiculo_id, motorista_id, data, litros, valor, tipo, odometro | {mensagem} ou {erro} |
-| GET    | `/api/manutencoes`             | —                               | Lista de manutenções            |
-| POST   | `/api/manutencoes`             | veiculo_id, data, tipo, custo, descricao, km | {mensagem} ou {erro} |
-| GET    | `/api/dashboard/previsao`      | —                               | Previsão ML (custo aos 100k km) |
-| GET    | `/api/dashboard/alertas`       | —                               | Lista de alertas de revisão     |
-| GET    | `/api/dashboard/consumo`       | —                               | Relatório de eficiência         |
-| GET    | `/api/dashboard/ranking`       | —                               | Top 5 eco-drivers               |
-| POST   | `/api/dashboard/simular_viagem`| origem (lat,lng), destino (lat,lng) | Distância, tempo, custo, rota |
+| Método | Rota                              | Acesso       | Entrada / Saída                 |
+|--------|-----------------------------------|--------------|----------------------------------|
+| GET    | `/api/veiculos`                   | Requer login | Lista de veículos com pedágio   |
+| POST   | `/api/veiculos`                   | Requer login | placa, modelo, marca, ano...     |
+| GET    | `/api/motoristas`                 | Requer login | Lista de motoristas com CNH     |
+| POST   | `/api/motoristas`                 | Requer login | nome, cnh, categoria_cnh        |
+| GET    | `/api/abastecimentos`             | Requer login | Lista com emissões CO₂         |
+| POST   | `/api/abastecimentos`             | Requer login | veiculo_id, motorista_id, ...   |
+| GET    | `/api/manutencoes`                | Requer login | Lista de manutenções           |
+| POST   | `/api/manutencoes`                | Requer login | veiculo_id, data, tipo, custo   |
+| GET    | `/api/dashboard/previsao`         | Requer login | Previsão ML                     |
+| GET    | `/api/dashboard/alertas`          | Requer login | Alertas de revisão             |
+| GET    | `/api/dashboard/consumo`          | Requer login | Relatório de eficiência        |
+| GET    | `/api/dashboard/ranking`          | Requer login | Top 5 eco-drivers               |
+| POST   | `/api/dashboard/simular_viagem`   | Requer login | Distância, tempo, custo, rota  |
+| GET    | `/api/usuarios`                   | Somente Admin| Lista de usuários cadastrados  |
+| POST   | `/api/usuarios`                   | Somente Admin| nome, username, senha, role     |
+| DELETE | `/api/usuarios/<id>`              | Somente Admin| Remove usuário por ID          |
+| GET    | `/api/me`                         | Requer login | Dados do usuário logado        |
 
 ---
 
@@ -335,9 +356,9 @@ O diagrama abaixo mostra como todas as funcionalidades se integram:
 
 ## 5.9 Limitações Técnicas Identificadas
 
-| #  | Limitação                              | Impacto                           | Proposta de Melhoria              |
+| #  | Limitação                              | Impacto                           | Status / Melhoria                 |
 |----|----------------------------------------|-----------------------------------|-----------------------------------|
-| 1  | Sem autenticação de usuários           | Qualquer pessoa pode acessar      | Implementar login com JWT         |
+| 1  | ~~Sem autenticação de usuários~~       | ~~Qualquer pessoa pode acessar~~  | ✅ **Implementado** (Flask-Login + Bcrypt) |
 | 2  | Conexão nova a cada requisição         | Não é escalável para muitos users | Utilizar pool de conexões (pgBouncer) |
 | 3  | Dados de telemetria (mapa) simulados   | Posição dos veículos é fictícia   | Integrar com GPS real (IoT)       |
 | 4  | Modelo ML com uma única feature        | Previsão simplificada             | Adicionar mais variáveis (idade, tipo) |
@@ -349,8 +370,8 @@ O diagrama abaixo mostra como todas as funcionalidades se integram:
 ## 5.10 Proposição de Melhorias e Evolução Futura
 
 ### Curto Prazo (Próxima Sprint)
-- 🔐 **Autenticação:** Sistema de login com roles (Admin/Operador)
-- ✏️ **CRUD completo:** Edição e exclusão de registros
+- ✅ ~~**Autenticação:** Sistema de login com roles (Admin/Operador)~~ — **Implementado**
+- ✏️ **CRUD completo:** Edição e exclusão de registros existentes
 - 📄 **Exportação PDF:** Relatórios exportáveis para impressão
 
 ### Médio Prazo (3 meses)

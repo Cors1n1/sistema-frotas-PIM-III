@@ -42,10 +42,29 @@
             <a href="/analise.html" class="{{ 'active' if request.path == '/analise.html' else '' }}" aria-current="{{ 'page' if request.path == '/analise.html' else 'false' }}">
                 <span class="nav-icon" aria-hidden="true">🧠</span> <span class="nav-text">Análise (IA)</span>
             </a>
+            {% if current_user.is_authenticated and current_user.is_admin() %}
+            <a href="/usuarios.html" class="{{ 'active' if request.path == '/usuarios.html' else '' }}" aria-current="{{ 'page' if request.path == '/usuarios.html' else 'false' }}">
+                <span class="nav-icon" aria-hidden="true">👥</span> <span class="nav-text">Usuários</span>
+            </a>
+            {% endif %}
         </nav>
         <div class="sidebar-footer">
+            {% if current_user.is_authenticated %}
+            <div class="sidebar-user" aria-label="Usuário logado">
+                <div class="sidebar-user-avatar" aria-hidden="true">
+                    {{ current_user.nome[:2].upper() }}
+                </div>
+                <div class="sidebar-user-info nav-text">
+                    <span class="sidebar-user-name">{{ current_user.nome.split()[0] }}</span>
+                    <span class="sidebar-user-role">{{ '🛡️ Admin' if current_user.is_admin() else '🧑‍💻 Operador' }}</span>
+                </div>
+            </div>
+            <a href="/logout" class="sidebar-logout nav-text" aria-label="Sair do sistema">
+                <span aria-hidden="true">🚪</span> <span>Sair</span>
+            </a>
+            {% endif %}
             <span style="font-weight:700;">TransLog Soluções</span><br>
-            Sistema Integrado v2.0
+            Sistema Integrado v2.1
         </div>
     </aside>
 

@@ -1,0 +1,654 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciamento de Usuários{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ═══ VARIÁVEIS ADAPTÁVEIS ═══ */
+    :root {
+        --pro-card-bg: var(--white);
+        --pro-text: var(--text-main);
+        --pro-border: var(--border-color);
+        --pro-header-text: var(--primary-blue);
+        --input-bg: #ffffff;
+        --danger: #ef4444;
+        --success: #10b981;
+    }
+    [data-theme="dark"] {
+        --pro-card-bg: #1e293b;
+        --pro-text: #f8fafc;
+        --pro-border: #334155;
+        --pro-header-text: var(--secondary-yellow);
+        --input-bg: #0f172a;
+    }
+
+    /* ─── Cabeçalho da página ─── */
+    .header-section {
+        padding: 20px 0;
+        margin-bottom: 28px;
+        border-bottom: 1px solid var(--pro-border);
+    }
+    .header-section h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--pro-header-text);
+        margin: 0 0 6px;
+        border: none;
+        padding: 0;
+    }
+    .header-section p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    /* ─── KPI Cards ─── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    @media (max-width: 600px) {
+        .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    }
+    .kpi-card {
+        background: var(--pro-card-bg);
+        border: 1px solid var(--pro-border);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-card .kpi-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .kpi-card .kpi-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: var(--pro-header-text);
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .kpi-card .kpi-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-muted);
+    }
+
+    /* ─── Card principal ─── */
+    .pro-card {
+        background: var(--pro-card-bg);
+        border: 1px solid var(--pro-border);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--pro-border);
+    }
+
+    .title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .title-group .badge-icon {
+        background: rgba(30, 58, 138, 0.1);
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 1.2rem;
+    }
+    .title-group h2 {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin: 0;
+        padding: 0;
+        border: none;
+        color: var(--pro-text);
+    }
+
+    /* ─── Botão Novo Usuário ─── */
+    .btn-save {
+        background: var(--primary-blue);
+        color: white;
+        font-weight: 700;
+        padding: 11px 22px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.88rem;
+        font-family: inherit;
+        transition: transform 0.2s, background 0.3s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-save:hover {
+        background: #1e40af;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(30,58,138,0.3);
+    }
+
+    /* ─── Tabela ─── */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+        background: var(--primary-blue);
+        color: white;
+        text-align: left;
+        padding: 14px 20px;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+    tbody td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--pro-border);
+        color: var(--pro-text);
+        background: var(--pro-card-bg);
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(30,58,138,0.04); }
+    [data-theme="dark"] tbody tr:hover td { background: rgba(96,165,250,0.07); }
+
+    /* ─── Avatar ─── */
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-avatar {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-blue), #60a5fa);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 800; color: #fff;
+        flex-shrink: 0;
+    }
+    .user-name { font-weight: 600; }
+
+    /* ─── Badges de role ─── */
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .role-badge.admin {
+        background: rgba(250,204,21,0.15);
+        color: #b45309;
+        border: 1px solid rgba(250,204,21,0.45);
+    }
+    [data-theme="dark"] .role-badge.admin {
+        background: rgba(253,224,71,0.1);
+        color: #fde047;
+        border-color: rgba(253,224,71,0.3);
+    }
+    .role-badge.operador {
+        background: rgba(59,130,246,0.1);
+        color: #1d4ed8;
+        border: 1px solid rgba(59,130,246,0.25);
+    }
+    [data-theme="dark"] .role-badge.operador {
+        background: rgba(96,165,250,0.1);
+        color: #60a5fa;
+        border-color: rgba(96,165,250,0.25);
+    }
+
+    /* ─── Botão excluir ─── */
+    .btn-excluir {
+        background: none;
+        border: 1.5px solid rgba(239,68,68,0.35);
+        border-radius: 8px;
+        color: var(--danger);
+        padding: 7px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    .btn-excluir:hover {
+        background: var(--danger);
+        color: #fff;
+        border-color: var(--danger);
+    }
+    .btn-excluir:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: none;
+        color: var(--text-muted);
+        border-color: var(--pro-border);
+    }
+
+    /* ─── Estado vazio ─── */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ─── CODE username ─── */
+    code {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        background: var(--light-bg, #f1f5f9);
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+    }
+    [data-theme="dark"] code { background: #0f172a; }
+
+    /* ═══ MODAL ═══ */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(4px);
+        z-index: 5000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal {
+        background: var(--pro-card-bg);
+        border: 1px solid var(--pro-border);
+        border-radius: 20px;
+        padding: 32px;
+        width: 100%;
+        max-width: 460px;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+        transform: scale(0.95) translateY(20px);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal { transform: scale(1) translateY(0); }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .modal-header h3 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--pro-text);
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+    .modal-close:hover { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+    .modal-form .input-group-pro { margin-bottom: 16px; }
+    .modal-form label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 6px;
+    }
+    .modal-form .input-pro {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1.5px solid var(--pro-border);
+        border-radius: 8px;
+        padding: 11px 14px;
+        font-size: 0.92rem;
+        font-family: inherit;
+        color: var(--pro-text);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .modal-form .input-pro:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(30,58,138,0.12);
+    }
+    .senha-dica {
+        font-size: 0.73rem;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+        justify-content: flex-end;
+    }
+    .btn-cancelar {
+        padding: 10px 20px;
+        background: none;
+        border: 1.5px solid var(--pro-border);
+        border-radius: 8px;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-family: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-cancelar:hover { border-color: var(--pro-text); color: var(--pro-text); }
+    .btn-salvar {
+        padding: 10px 24px;
+        background: var(--primary-blue);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-salvar:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(30,58,138,0.3); }
+    .btn-salvar:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="header-section">
+    <h1>👥 Gerenciamento de Usuários</h1>
+    <p>Administre os acessos ao sistema. Apenas administradores podem criar ou remover contas.</p>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid" role="list" aria-label="Estatísticas de usuários">
+    <div class="kpi-card" role="listitem">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-label">Total</div>
+    </div>
+    <div class="kpi-card" role="listitem">
+        <div class="kpi-icon">🛡️</div>
+        <div class="kpi-value" id="kpi-admins">—</div>
+        <div class="kpi-label">Admins</div>
+    </div>
+    <div class="kpi-card" role="listitem">
+        <div class="kpi-icon">🧑‍💻</div>
+        <div class="kpi-value" id="kpi-operadores">—</div>
+        <div class="kpi-label">Operadores</div>
+    </div>
+</div>
+
+<!-- Tabela principal -->
+<div class="pro-card">
+    <div class="card-top">
+        <div class="title-group">
+            <span class="badge-icon">📋</span>
+            <h2>Usuários Cadastrados</h2>
+        </div>
+        <button class="btn-save" id="btn-novo-usuario" onclick="abrirModal()" aria-haspopup="dialog">
+            ➕ Novo Usuário
+        </button>
+    </div>
+    <div class="table-container">
+        <table aria-label="Tabela de usuários do sistema">
+            <thead>
+                <tr>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Login</th>
+                    <th scope="col">Perfil</th>
+                    <th scope="col"><span class="sr-only">Ações</span></th>
+                </tr>
+            </thead>
+            <tbody id="tbody-usuarios">
+                <tr>
+                    <td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">
+                        ⏳ Carregando usuários...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Novo Usuário -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modal-title">➕ Novo Usuário</h3>
+            <button class="modal-close" onclick="fecharModal()" aria-label="Fechar modal">✕</button>
+        </div>
+        <form class="modal-form" id="form-novo-usuario" novalidate>
+            <div class="input-group-pro">
+                <label for="input-nome">Nome Completo</label>
+                <input type="text" id="input-nome" class="input-pro" placeholder="Ex.: João da Silva" autocomplete="name" required>
+            </div>
+            <div class="input-group-pro">
+                <label for="input-username">Nome de Usuário (login)</label>
+                <input type="text" id="input-username" class="input-pro" placeholder="Ex.: joao.silva" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="input-group-pro">
+                <label for="input-senha">Senha</label>
+                <input type="password" id="input-senha" class="input-pro" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6">
+                <p class="senha-dica">🔒 Armazenada como hash bcrypt — nunca em texto puro.</p>
+            </div>
+            <div class="input-group-pro">
+                <label for="input-role">Perfil de Acesso</label>
+                <select id="input-role" class="input-pro" required>
+                    <option value="operador">🧑‍💻 Operador — Acesso ao sistema</option>
+                    <option value="admin">🛡️ Administrador — Acesso total + gerenciar usuários</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                <button type="submit" class="btn-salvar" id="btn-salvar">💾 Criar Usuário</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ══════════════════════════════════════════════
+// LÓGICA DA PÁGINA DE USUÁRIOS
+// ══════════════════════════════════════════════
+
+let meusId = null;
+
+async function carregarMe() {
+    try {
+        const res = await fetch('/api/me');
+        if (!res.ok) return;
+        const me = await res.json();
+        meusId = me.id;
+    } catch (e) { /* silencioso */ }
+}
+
+async function carregarUsuarios() {
+    const tbody = document.getElementById('tbody-usuarios');
+
+    try {
+        const res = await fetch('/api/usuarios');
+
+        if (res.status === 403) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--danger);">
+                🔒 Acesso restrito. Apenas administradores podem gerenciar usuários.
+            </td></tr>`;
+            document.getElementById('btn-novo-usuario').style.display = 'none';
+            return;
+        }
+
+        const usuarios = await res.json();
+
+        // KPIs
+        const admins     = usuarios.filter(u => u.role === 'admin').length;
+        const operadores = usuarios.filter(u => u.role === 'operador').length;
+        document.getElementById('kpi-total').textContent     = usuarios.length;
+        document.getElementById('kpi-admins').textContent    = admins;
+        document.getElementById('kpi-operadores').textContent = operadores;
+
+        if (usuarios.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4">
+                <div class="empty-state">
+                    <div class="empty-icon">👥</div>
+                    <p>Nenhum usuário cadastrado.</p>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = usuarios.map(u => {
+            const iniciais  = u.nome.split(' ').slice(0,2).map(p => p[0].toUpperCase()).join('');
+            const roleBadge = u.role === 'admin'
+                ? `<span class="role-badge admin">🛡️ Admin</span>`
+                : `<span class="role-badge operador">🧑‍💻 Operador</span>`;
+
+            const ehEu = u.id === meusId;
+            const btnExcluir = ehEu
+                ? `<button class="btn-excluir" disabled title="Não pode excluir sua própria conta">🚫 Minha conta</button>`
+                : `<button class="btn-excluir" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🗑️ Excluir</button>`;
+
+            return `
+            <tr>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar">${iniciais}</div>
+                        <span class="user-name">${u.nome}</span>
+                    </div>
+                </td>
+                <td><code>@${u.username}</code></td>
+                <td>${roleBadge}</td>
+                <td>${btnExcluir}</td>
+            </tr>`;
+        }).join('');
+
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--danger);">
+            ❌ Erro ao carregar usuários.
+        </td></tr>`;
+    }
+}
+
+async function excluirUsuario(id, nome) {
+    if (!confirm(`⚠️ Confirma a exclusão de "${nome}"?\n\nEsta ação não pode ser desfeita.`)) return;
+
+    try {
+        const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(`✅ Usuário "${nome}" excluído.`, 'success');
+            carregarUsuarios();
+        } else {
+            showToast(`❌ ${data.erro}`, 'error');
+        }
+    } catch (e) {
+        showToast('❌ Erro de conexão.', 'error');
+    }
+}
+
+function abrirModal() {
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
+    setTimeout(() => document.getElementById('input-nome').focus(), 50);
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.getElementById('form-novo-usuario').reset();
+    document.body.style.overflow = '';
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fecharModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+document.getElementById('form-novo-usuario').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const nome     = document.getElementById('input-nome').value.trim();
+    const username = document.getElementById('input-username').value.trim();
+    const senha    = document.getElementById('input-senha').value;
+    const role     = document.getElementById('input-role').value;
+
+    if (!nome || !username || !senha) {
+        showToast('⚠️ Preencha todos os campos obrigatórios.', 'error');
+        return;
+    }
+    if (senha.length < 6) {
+        showToast('⚠️ A senha deve ter pelo menos 6 caracteres.', 'error');
+        return;
+    }
+
+    const btnSalvar = document.getElementById('btn-salvar');
+    btnSalvar.disabled = true;
+    btnSalvar.textContent = '⏳ Criando...';
+
+    try {
+        const res = await fetch('/api/usuarios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, username, senha, role })
+        });
+        const data = await res.json();
+
+        if (res.ok || res.status === 201) {
+            showToast(`✅ ${data.mensagem}`, 'success');
+            fecharModal();
+            carregarUsuarios();
+        } else {
+            showToast(`❌ ${data.erro}`, 'error');
+        }
+    } catch (err) {
+        showToast('❌ Erro de conexão.', 'error');
+    } finally {
+        btnSalvar.disabled = false;
+        btnSalvar.textContent = '💾 Criar Usuário';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await carregarMe();
+    await carregarUsuarios();
+});
+</script>
+{% endblock %}
