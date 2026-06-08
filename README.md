@@ -391,7 +391,7 @@ Usuário → POST /api/auth/forgot-password (email) → Token gerado (itsdangero
 
 ## 👥 Equipe
 
-**Desenvolvimento Backend, Frontend, Banco de Dados e Documentação**  
+**Desenvolvedor**  
 Victor Corsini — UNIP ADS · PIM III
 
 ---
