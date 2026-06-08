@@ -3,240 +3,531 @@
 {% block title %}Gestão de Condutores Profissionais{% endblock %}
 
 {% block extra_head %}
-    <style>
-        /* Variáveis Dinâmicas Pro Adaptáveis */
-        :root {
-            --pro-card-bg: var(--white);
-            --pro-text: var(--text-main);
-            --pro-border: var(--border-color);
-            --pro-header-text: var(--primary-blue);
-            --input-bg: #ffffff;
-            --cat-bg: #f8fafc;
-        }
+<style>
+    /* ═══ VARIÁVEIS LOCAIS ═══ */
+    :root {
+        --pro-card-bg: var(--white);
+        --pro-text: var(--text-main);
+        --pro-border: var(--border-color);
+        --pro-header-text: var(--primary-blue);
+        --input-bg: #ffffff;
+        --cat-bg: #f8fafc;
+    }
 
-        [data-theme="dark"] {
-            --pro-card-bg: #1e293b;
-            --pro-text: #f8fafc;
-            --pro-border: #334155;
-            --pro-header-text: var(--secondary-yellow);
-            --input-bg: #0f172a;
-            --cat-bg: #020617;
-        }
+    [data-theme="dark"] {
+        --pro-card-bg: #1e293b;
+        --pro-text: #f8fafc;
+        --pro-border: #334155;
+        --pro-header-text: var(--secondary-yellow);
+        --input-bg: #0f172a;
+        --cat-bg: #020617;
+    }
 
-        .header-section {
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--pro-border);
-        }
+    /* ═══ CABEÇALHO DA PÁGINA ═══ */
+    .header-section {
+        padding: 20px 0;
+        margin-bottom: 28px;
+        border-bottom: 1px solid var(--pro-border);
+    }
 
-        .header-section h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--pro-header-text);
-            margin: 0;
-        }
+    .header-section h1 {
+        font-size: clamp(1.3rem, 4vw, 1.8rem); /* Tamanho fluido para não vazar */
+        font-weight: 800;
+        color: var(--pro-header-text);
+        margin: 0 0 6px;
+        word-break: break-word;
+    }
 
-        /* Cartões de Gestão */
-        .pro-card {
-            background: var(--pro-card-bg);
-            border: 1px solid var(--pro-border);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            margin-bottom: 25px;
-        }
+    .header-section p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
 
-        .title-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+    /* ═══ CARDS ═══ */
+    .pro-card {
+        background: var(--pro-card-bg);
+        border: 1px solid var(--pro-border);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+        margin-bottom: 24px;
+        /* Impede que o card estoure a largura */
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
 
-        .title-group h2 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0;
-            padding: 0;
-            border: none;
-            color: var(--pro-text);
-        }
+    .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap; /* wrap em telas muito estreitas */
+    }
 
-        .badge-icon {
-            background: rgba(30, 58, 138, 0.1);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 1.3rem;
-        }
+    .title-group h2 {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0;
+        color: var(--pro-text);
+        border: none;
+        padding: 0;
+    }
 
-        /* Estilização do Formulário */
-        .input-group-pro {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+    .badge-icon {
+        background: rgba(30, 58, 138, 0.1);
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
 
-        .input-group-pro label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
+    /* ═══ FORMULÁRIO — Mobile First ═══
+       No mobile: cada campo ocupa 100% (coluna única).
+       No tablet+: dois campos por linha.
+       No desktop: dois campos por linha (já definido pelo grid).
+    ══════════════════════════════════ */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr; /* Mobile: coluna única */
+        gap: 16px;
+        width: 100%;
+    }
 
-        .input-pro {
-            background: var(--input-bg);
-            border: 1px solid var(--pro-border);
-            color: var(--pro-text);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: border-color 0.3s;
+    @media (min-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr 1fr; /* Tablet+: duas colunas */
         }
+    }
 
-        .input-pro:focus {
-            border-color: var(--primary-blue);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+    .input-group-pro {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+        min-width: 0; /* Impede overflow dentro do grid */
+    }
+
+    .input-group-pro label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-pro {
+        background: var(--input-bg);
+        border: 1px solid var(--pro-border);
+        color: var(--pro-text);
+        padding: 11px 14px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        width: 100%;
+        box-sizing: border-box; /* Fundamental: garante que padding não estoure */
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+    }
+
+    .input-pro:focus {
+        border-color: var(--primary-blue);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+    }
+
+    /* ═══ CATEGORIAS CNH ═══ */
+    .section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .cat-container {
+        background: var(--cat-bg);
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px solid var(--pro-border);
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap; /* ← Garante quebra de linha, evita overflow */
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .cat-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--pro-text);
+        font-size: 0.88rem;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .cat-item input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        accent-color: var(--primary-blue);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* ═══ BOTÃO SALVAR ═══ */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-save {
+        background: var(--primary-blue);
+        color: white;
+        font-weight: 700;
+        padding: 13px 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        transition: background 0.2s, transform 0.2s;
+        white-space: nowrap;
+    }
+
+    .btn-save:hover {
+        background: #1e40af;
+        transform: translateY(-1px);
+    }
+
+    .btn-save:active {
+        transform: translateY(0);
+    }
+
+    /* Mobile: botão ocupa largura total */
+    @media (max-width: 480px) {
+        .form-actions {
+            justify-content: stretch;
         }
-
-        /* Container de Categorias CNH */
-        .cat-container {
-            background: var(--cat-bg);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid var(--pro-border);
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .cat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--pro-text);
-        }
-
-        .cat-item input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
         .btn-save {
-            background: var(--primary-blue);
-            color: white;
-            font-weight: 700;
-            padding: 15px 30px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            width: 100%;
+            justify-content: center;
         }
+    }
 
-        .btn-save:hover {
-            background: #1e40af;
-            transform: translateY(-2px);
-        }
+    /* ═══ TABELA COM SCROLL INTERNO ═══
+       O wrapper define a "janela" com scroll horizontal.
+       A tabela dentro tem largura mínima para não colapsar.
+    ══════════════════════════════════ */
+    .table-responsive-wrapper {
+        width: 100%;
+        overflow-x: auto;          /* Scroll horizontal DENTRO do card */
+        -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+        border-radius: 10px;
+        border: 1px solid var(--pro-border);
+    }
 
-        /* Tabela de Motoristas Profissional */
-        .table-container {
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid var(--pro-border);
-        }
+    .table-responsive-wrapper table {
+        width: 100%;
+        min-width: 540px;          /* Impede colapso; ativa scroll abaixo de 540px */
+        border-collapse: collapse;
+        background: var(--pro-card-bg);
+    }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { background: var(--primary-blue) !important; color: white !important; text-align: left; padding: 15px; font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid var(--pro-border); color: var(--pro-text); background: var(--pro-card-bg); }
+    .table-responsive-wrapper th {
+        background: var(--primary-blue) !important;
+        color: white !important;
+        text-align: left;
+        padding: 13px 15px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
 
-        .cnh-badge {
-            background: var(--primary-blue);
-            color: var(--secondary-yellow);
-            padding: 3px 8px;
-            border-radius: 5px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            margin-right: 5px;
-        }
-    </style>
+    .table-responsive-wrapper td {
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--pro-border);
+        color: var(--pro-text);
+        font-size: 0.88rem;
+        vertical-align: middle;
+    }
+
+    .table-responsive-wrapper tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-responsive-wrapper tbody tr:hover td {
+        background: var(--primary-blue-glow);
+    }
+
+    /* Avatar do motorista na tabela */
+    .avatar-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-blue), #60a5fa);
+        color: white;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Badge de categoria CNH */
+    .cnh-badge {
+        display: inline-block;
+        background: var(--primary-blue);
+        color: var(--secondary-yellow);
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        margin: 2px 3px 2px 0;
+        letter-spacing: 0.5px;
+    }
+
+    /* ═══ TABELA DESKTOP vs CARDS MOBILE ═══ */
+
+    /* --- Cards Mobile (< 640px) --- */
+    .drivers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .driver-card {
+        background: var(--pro-card-bg);
+        border: 1px solid var(--pro-border);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+
+    .driver-card:hover {
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.1);
+    }
+
+    .driver-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .driver-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .driver-card-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--pro-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .driver-card-cnh {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .driver-card-toggle {
+        font-size: 1rem;
+        color: var(--text-muted);
+        transition: transform 0.25s;
+        flex-shrink: 0;
+    }
+
+    .driver-card.open .driver-card-toggle {
+        transform: rotate(180deg);
+    }
+
+    .driver-card-body {
+        display: none;
+        padding: 0 16px 14px;
+        border-top: 1px solid var(--pro-border);
+    }
+
+    .driver-card.open .driver-card-body {
+        display: block;
+    }
+
+    .driver-detail-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--pro-border);
+        font-size: 0.85rem;
+    }
+
+    .driver-detail-row:last-child { border-bottom: none; }
+
+    .driver-detail-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        min-width: 80px;
+        padding-top: 2px;
+    }
+
+    .driver-detail-val { color: var(--pro-text); flex: 1; }
+
+    /* --- Ocultar tabela no mobile, mostrar cards --- */
+    @media (max-width: 640px) {
+        .table-responsive-wrapper { display: none; }
+        .drivers-list { display: flex; }
+    }
+
+    @media (min-width: 641px) {
+        .drivers-list { display: none; }
+        .table-responsive-wrapper { display: block; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="header-section">
-        <h1>RECURSOS HUMANOS & LOGÍSTICA</h1>
-        <p style="color: var(--text-muted);">Gestão centralizada de condutores e validação de competências de condução.</p>
+<div class="header-section">
+    <h1>Gestão de Motoristas</h1>
+    <p style="color: var(--text-muted);">Cadastre e organize os motoristas que fazem parte da equipe.</p>
+</div>
+
+<!-- ═══ CARD: CADASTRO ═══ -->
+<section class="pro-card" aria-label="Cadastro de Motorista">
+    <div class="title-group">
+        <span class="badge-icon">➕</span>
+        <h2>Cadastrar Novo Motorista</h2>
     </div>
 
-    <section class="pro-card">
-        <div class="title-group">
-            <span class="badge-icon">🆔</span>
-            <h2>Recrutamento / Novo Cadastro de Motorista</h2>
-        </div>
-        
-        <form id="form-motorista">
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px;">
-                <div class="input-group-pro">
-                    <label for="nome">Nome Completo do Colaborador</label>
-                    <input type="text" id="nome" class="input-pro" placeholder="Ex: Victor Corsini" required>
-                </div>
-
-                <div class="input-group-pro">
-                    <label for="cnh">Registro Geral CNH</label>
-                    <input type="text" id="cnh" class="input-pro" placeholder="00000000000" required>
-                </div>
+    <form id="form-motorista" novalidate>
+        <!-- Nome e CNH lado a lado em tablet+, empilhados no mobile -->
+        <div class="form-grid">
+            <div class="input-group-pro">
+                <label for="nome">Nome Completo do Colaborador</label>
+                <input
+                    type="text"
+                    id="nome"
+                    class="input-pro"
+                    placeholder="Ex: Victor Corsini"
+                    required
+                    autocomplete="name"
+                >
             </div>
 
-            <div class="input-group-pro" style="margin-bottom: 30px;">
-                <label>Habilitações e Categorias Autorizadas</label>
-                <div class="cat-container">
-                    <label class="cat-item"><input type="checkbox" name="cnh-cat" value="A"> Cat. A (Moto)</label>
-                    <label class="cat-item"><input type="checkbox" name="cnh-cat" value="B"> Cat. B (Carro)</label>
-                    <label class="cat-item"><input type="checkbox" name="cnh-cat" value="C"> Cat. C (Caminhão)</label>
-                    <label class="cat-item"><input type="checkbox" name="cnh-cat" value="D"> Cat. D (Ônibus)</label>
-                    <label class="cat-item"><input type="checkbox" name="cnh-cat" value="E"> Cat. E (Articulados)</label>
-                </div>
+            <div class="input-group-pro">
+                <label for="cnh">Registro Geral CNH</label>
+                <input
+                    type="text"
+                    id="cnh"
+                    class="input-pro"
+                    placeholder="00000000000"
+                    required
+                    maxlength="11"
+                    inputmode="numeric"
+                >
             </div>
+        </div>
 
-            <div style="display: flex; justify-content: flex-end;">
-                <button type="submit" class="btn-save">
-                    <span>💾</span> EFETIVAR REGISTRO
-                </button>
+        <!-- Categorias CNH -->
+        <div style="margin-top: 16px; margin-bottom: 4px;">
+            <span class="section-label">Habilitações e Categorias Autorizadas</span>
+            <div class="cat-container" role="group" aria-label="Categorias de CNH">
+                <label class="cat-item">
+                    <input type="checkbox" name="cnh-cat" value="A"> Cat. A (Moto)
+                </label>
+                <label class="cat-item">
+                    <input type="checkbox" name="cnh-cat" value="B"> Cat. B (Carro)
+                </label>
+                <label class="cat-item">
+                    <input type="checkbox" name="cnh-cat" value="C"> Cat. C (Caminhão)
+                </label>
+                <label class="cat-item">
+                    <input type="checkbox" name="cnh-cat" value="D"> Cat. D (Ônibus)
+                </label>
+                <label class="cat-item">
+                    <input type="checkbox" name="cnh-cat" value="E"> Cat. E (Articulados)
+                </label>
             </div>
-        </form>
-    </section>
+        </div>
 
-    <section class="pro-card">
-        <div class="title-group">
-            <span class="badge-icon">👥</span>
-            <h2>Quadro Ativo de Condutores</h2>
+        <!-- Botão de salvar -->
+        <div class="form-actions">
+            <button type="submit" class="btn-save" id="btn-efetivar">
+                <span aria-hidden="true">💾</span>
+                EFETIVAR REGISTRO
+            </button>
         </div>
-        
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th width="80">Avatar</th>
-                        <th>Nome Completo</th>
-                        <th>Documento CNH</th>
-                        <th>Categorias de Condução</th>
-                    </tr>
-                </thead>
-                <tbody id="lista-motoristas">
-                    </tbody>
-            </table>
+    </form>
+</section>
+
+<!-- ═══ CARD: TABELA DE MOTORISTAS ═══ -->
+<section class="pro-card" aria-label="Lista de motoristas cadastrados">
+    <div class="title-group">
+        <span class="badge-icon">👥</span>
+        <h2>Lista de Motoristas da Equipe</h2>
+    </div>
+
+    <div class="table-controls">
+        <div class="search-bar-container">
+            <input type="text" id="search-motoristas" placeholder="Pesquisar por nome, cnh ou categorias...">
         </div>
-    </section>
+    </div>
+
+    <!-- VERSÃO DESKTOP: tabela com scroll -->
+    <div class="table-responsive-wrapper" role="region" aria-label="Tabela de motoristas" tabindex="0">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 60px;">Avatar</th>
+                    <th scope="col" class="sortable" onclick="ordenarMotoristas('nome', this)">Nome Completo <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarMotoristas('cnh', this)">Documento CNH <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarMotoristas('categorias', this)">Categorias de Condução <span class="sort-icon">↕️</span></th>
+                </tr>
+            </thead>
+            <tbody id="lista-motoristas">
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <span class="empty-icon">🧑‍✈️</span>
+                            <p>Nenhum motorista cadastrado ainda.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- VERSÃO MOBILE: lista de cards expandíveis -->
+    <div class="drivers-list" id="drivers-list-mobile" aria-label="Lista de motoristas" role="list">
+        <div class="empty-state">
+            <span class="empty-icon">🧑‍✈️</span>
+            <p>Nenhum motorista cadastrado ainda.</p>
+        </div>
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination" id="pagination-motoristas"></div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-    <script src="js/motoristas.js"></script>
+<script src="js/motoristas.js"></script>
 {% endblock %}

@@ -1,225 +1,317 @@
 /**
  * frontend/js/charts.js
- * Business Intelligence — Visualização Premium com Chart.js
- * Gráficos com gradientes, animações e adaptação Dark/Light Mode
+ * Dashboard Executivo — Visualização Premium com Chart.js e Glassmorphism
  */
 
-async function renderizarGraficos() {
+async function renderizarDashboard() {
     console.log("⚡ Inicializando pipeline de dados do Dashboard...");
 
-    const chartCustosElement = document.getElementById('chartCustos');
-    const chartCO2Element = document.getElementById('chartCO2');
-
-    // Skeleton Loading Screen
-    const skeletonHTML = '<div class="skeleton-loader" style="width:100%;height:100%;background:linear-gradient(90deg,var(--border-color) 25%,var(--white) 50%,var(--border-color) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;"></div>';
-
-    if (chartCustosElement) {
-        chartCustosElement.parentElement.innerHTML = skeletonHTML + '<canvas id="chartCustos" style="display:none;"></canvas>';
-    }
-    if (chartCO2Element) {
-        chartCO2Element.parentElement.innerHTML = skeletonHTML + '<canvas id="chartCO2" style="display:none;"></canvas>';
-    }
-
+    const timelineEl = document.getElementById('timeline-feed');
+    
     try {
-        // Buscar dados + contadores extras em paralelo
-        const [resConsumo, resAbast, resManut, resMotoristas] = await Promise.all([
-            fetch('/api/dashboard/consumo'),
+        // Fetch all required data in parallel
+        const [resConsumo, resAbast, resManut, resVeiculos] = await Promise.all([
+            fetch('/api/dashboard/consumo').catch(() => null),
             fetch('/api/abastecimentos').catch(() => null),
             fetch('/api/manutencoes').catch(() => null),
-            fetch('/api/motoristas').catch(() => null)
+            fetch('/api/veiculos').catch(() => null)
         ]);
 
-        const dados = await resConsumo.json();
+        let dadosConsumo = [];
+        if (resConsumo && resConsumo.ok) dadosConsumo = await resConsumo.json();
+        
+        let abastecimentos = [];
+        if (resAbast && resAbast.ok) abastecimentos = await resAbast.json();
+        
+        let manutencoes = [];
+        if (resManut && resManut.ok) manutencoes = await resManut.json();
+        
+        let veiculos = [];
+        if (resVeiculos && resVeiculos.ok) veiculos = await resVeiculos.json();
 
-        // Mini Stats (Dashboard novo)
-        if (resAbast && resAbast.ok) {
-            const abasts = await resAbast.json();
-            const el = document.getElementById('stat-abastecimentos');
-            if (el) el.textContent = abasts.length;
-        }
-        if (resManut && resManut.ok) {
-            const manuts = await resManut.json();
-            const el = document.getElementById('stat-manutencoes');
-            if (el) el.textContent = manuts.length;
-        }
-        if (resMotoristas && resMotoristas.ok) {
-            const mots = await resMotoristas.json();
-            const el = document.getElementById('stat-motoristas');
-            if (el) el.textContent = mots.length;
-        }
+        // 1. Processar KPIs
+        const frotaAtiva = veiculos.length;
+        const kmTotal = veiculos.reduce((acc, v) => acc + (Number(v.quilometragem) || 0), 0);
+        
+        let custoCombustivelTotal = abastecimentos.reduce((acc, a) => acc + (Number(a.valor_total) || 0), 0);
+        let custoManutencaoTotal = manutencoes.reduce((acc, m) => acc + (Number(m.custo) || 0), 0);
+        let custoTotal = custoCombustivelTotal + custoManutencaoTotal;
 
-        if (dados.length === 0) {
-            const kpiV = document.getElementById('kpi-veiculos');
-            if (kpiV) kpiV.textContent = "0";
+        // Map para nome dos veiculos (ID -> Placa/Modelo)
+        const mapaVeiculos = {};
+        veiculos.forEach(v => { mapaVeiculos[v.id] = `${v.placa} (${v.modelo})`; });
 
-            // Remove skeleton e mostra mensagens
-            const canvasCustos = document.getElementById('chartCustos');
-            const canvasCO2 = document.getElementById('chartCO2');
-            if (canvasCustos) {
-                const skel = canvasCustos.previousSibling;
-                if (skel) skel.remove();
-                canvasCustos.parentElement.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><span style="font-size:3rem;margin-bottom:10px;">📊</span><p style="font-weight:600;">Sem dados disponíveis</p><p style="font-size:0.8rem;">Registre abastecimentos para gerar o gráfico.</p></div>';
+        // Identificar Veículo de Maior Despesa
+        const gastosPorVeiculo = {};
+        veiculos.forEach(v => { gastosPorVeiculo[v.id] = 0; });
+        
+        abastecimentos.forEach(a => { if (gastosPorVeiculo[a.veiculo_id] !== undefined) gastosPorVeiculo[a.veiculo_id] += Number(a.valor_total); });
+        manutencoes.forEach(m => { if (gastosPorVeiculo[m.veiculo_id] !== undefined) gastosPorVeiculo[m.veiculo_id] += Number(m.custo); });
+
+        let maiorGasto = -1;
+        let veiculoMaiorGasto = "--";
+        
+        for (const vid in gastosPorVeiculo) {
+            if (gastosPorVeiculo[vid] > maiorGasto && gastosPorVeiculo[vid] > 0) {
+                maiorGasto = gastosPorVeiculo[vid];
+                veiculoMaiorGasto = mapaVeiculos[vid] || `ID ${vid}`;
             }
-            if (canvasCO2) {
-                const skel = canvasCO2.previousSibling;
-                if (skel) skel.remove();
-                canvasCO2.parentElement.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-muted);"><span style="font-size:3rem;margin-bottom:10px;">🌱</span><p style="font-weight:600;">Sem dados de emissões</p><p style="font-size:0.8rem;">Os dados de CO₂ aparecerão aqui.</p></div>';
-            }
-            return;
         }
 
-        const labels = dados.map(d => d.veiculo);
-        const custos = dados.map(d => parseFloat(d.total_gasto.replace('R$ ', '')) || 0);
-        const co2 = dados.map(d => parseFloat(d.co2_total.replace(' kg', '')) || 0);
-
-        const custoTotalAcumulado = custos.reduce((acc, curr) => acc + curr, 0);
-        const co2TotalAcumulado = co2.reduce((acc, curr) => acc + curr, 0);
-
-        // Atualizar KPIs
-        if (document.getElementById('kpi-veiculos')) {
-            document.getElementById('kpi-veiculos').textContent = dados.length;
-            document.getElementById('kpi-custo-total').textContent = `R$ ${custoTotalAcumulado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            document.getElementById('kpi-co2-total').textContent = `${co2TotalAcumulado.toFixed(2)} kg`;
+        // Atualizar Tela - KPIs
+        document.getElementById('kpi-veiculos').textContent = frotaAtiva;
+        document.getElementById('kpi-km-total').textContent = `${kmTotal.toLocaleString('pt-BR')} km`;
+        document.getElementById('kpi-custo-total').textContent = `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        
+        const kpiMaiorDespesa = document.getElementById('kpi-maior-despesa');
+        if (veiculoMaiorGasto !== "--") {
+            const veicCurto = veiculoMaiorGasto.split(' ').slice(0, 2).join(' ');
+            kpiMaiorDespesa.innerHTML = `<span style="font-size:0.8rem" class="d-none-mobile">${veiculoMaiorGasto}</span><span style="font-size:0.8rem" class="d-show-mobile">${veicCurto}</span><br>R$ ${maiorGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         }
 
-        // ── Configuração global do Chart.js ──
+        // 2. Processar Feed de Atividades
+        const feed = [];
+        abastecimentos.forEach(a => feed.push({ ...a, _tipoItem: 'abast', _dataReal: new Date(a.data_abastecimento) }));
+        manutencoes.forEach(m => feed.push({ ...m, _tipoItem: 'manut', _dataReal: new Date(m.data_manutencao) }));
+        
+        // Ordenar decrescente
+        feed.sort((a, b) => b._dataReal - a._dataReal);
+        
+        // Renderizar Top 8 no Timeline
+        timelineEl.innerHTML = '';
+        if (feed.length === 0) {
+            timelineEl.innerHTML = '<div style="color:var(--text-muted);padding:10px;">Nenhuma atividade recente.</div>';
+        } else {
+            feed.slice(0, 8).forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'timeline-item';
+                
+                const nomeCarro = mapaVeiculos[item.veiculo_id] || 'Veículo Desconhecido';
+                const nomeCurto = nomeCarro.split(' ').slice(0, 2).join(' ');
+                const nomeHTML = `<span class="d-none-mobile">${nomeCarro}</span><span class="d-show-mobile">${nomeCurto}</span>`;
+                
+                const dataFormatada = item._dataReal.toLocaleDateString('pt-BR');
+                const valorItem = item._tipoItem === 'abast' ? item.valor_total : item.custo;
+                const custoFormatado = `R$ ${Number(valorItem).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+                if (item._tipoItem === 'abast') {
+                    li.innerHTML = `
+                        <div class="timeline-icon fuel" title="Abastecimento">⛽</div>
+                        <div class="timeline-content">
+                            <span class="time-date">${dataFormatada}</span>
+                            <h4 class="time-title">Abastecimento</h4>
+                            <p class="time-desc">${nomeHTML} • ${item.litros}L de ${item.tipo_combustivel}</p>
+                            <span class="time-value">${custoFormatado}</span>
+                        </div>
+                    `;
+                } else {
+                    li.innerHTML = `
+                        <div class="timeline-icon maint" title="Manutenção">🔧</div>
+                        <div class="timeline-content">
+                            <span class="time-date">${dataFormatada}</span>
+                            <h4 class="time-title">Manutenção (${item.tipo})</h4>
+                            <p class="time-desc">${nomeHTML} • ${item.descricao}</p>
+                            <span class="time-value" style="color:#f59e0b;">${custoFormatado}</span>
+                        </div>
+                    `;
+                }
+                timelineEl.appendChild(li);
+            });
+        }
+
+        // 3. Preparar Gráficos Chart.js
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
         Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.font.weight = '500';
+        Chart.defaults.font.weight = '600';
+        const gridColor = isDark ? 'rgba(71, 85, 105, 0.2)' : 'rgba(226, 232, 240, 0.6)';
 
-        const gridColor = isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)';
+        // a) Gráfico de Custos por Veículo (Area Chart elegante)
+        const labelsVeiculos = [];
+        const dataCustos = [];
+        veiculos.forEach(v => {
+            if (gastosPorVeiculo[v.id] > 0) {
+                labelsVeiculos.push(v.placa);
+                dataCustos.push(gastosPorVeiculo[v.id]);
+            }
+        });
 
-        // ── Gráfico de Barras (Custos) ──
-        const canvasCustos = document.getElementById('chartCustos');
-        if (canvasCustos) {
-            const skel = canvasCustos.previousSibling;
-            if (skel) skel.remove();
-            canvasCustos.style.display = 'block';
+        const ctxCustos = document.getElementById('chartCustos').getContext('2d');
+        const bgGradCustos = ctxCustos.createLinearGradient(0, 0, 0, 400);
+        bgGradCustos.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.5)' : 'rgba(59, 130, 246, 0.3)');
+        bgGradCustos.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
 
-            const ctx = canvasCustos.getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, isDark ? 'rgba(96, 165, 250, 0.9)' : 'rgba(30, 58, 138, 0.9)');
-            gradient.addColorStop(1, isDark ? 'rgba(96, 165, 250, 0.3)' : 'rgba(30, 58, 138, 0.3)');
+        const borderGradCustos = ctxCustos.createLinearGradient(0, 0, 400, 0);
+        borderGradCustos.addColorStop(0, '#3b82f6');
+        borderGradCustos.addColorStop(1, '#8b5cf6');
 
-            new Chart(canvasCustos, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Investimento (R$)',
-                        data: custos,
-                        backgroundColor: gradient,
-                        borderColor: isDark ? '#60a5fa' : '#1e3a8a',
-                        borderWidth: 2,
-                        borderRadius: 10,
-                        borderSkipped: false,
-                        hoverBackgroundColor: '#facc15',
-                        hoverBorderColor: '#f59e0b',
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.7
-                    }]
+        const tooltipCustom = {
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: isDark ? '#f8fafc' : '#0f172a',
+            bodyColor: isDark ? '#94a3b8' : '#475569',
+            borderColor: isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)',
+            borderWidth: 1,
+            padding: 14,
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 13, weight: '600' },
+            boxPadding: 6,
+            usePointStyle: true,
+            cornerRadius: 12
+        };
+
+        new Chart(ctxCustos, {
+            type: 'bar',
+            data: {
+                labels: labelsVeiculos.length ? labelsVeiculos : ['Sem dados'],
+                datasets: [{
+                    label: 'Investimento (R$)',
+                    data: dataCustos.length ? dataCustos : [0],
+                    backgroundColor: bgGradCustos,
+                    borderColor: borderGradCustos,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    barPercentage: 0.6,
+                    hoverBackgroundColor: borderGradCustos
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        ...tooltipCustom,
+                        callbacks: {
+                            label: ctx => ` R$ ${ctx.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                        }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 1200, easing: 'easeOutQuart' },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: isDark ? '#1e293b' : '#111827',
-                            titleColor: '#facc15',
-                            bodyColor: '#f8fafc',
-                            borderColor: isDark ? '#334155' : '#1e3a8a',
-                            borderWidth: 1,
-                            cornerRadius: 10,
-                            padding: 14,
-                            titleFont: { weight: '700' },
-                            callbacks: {
-                                label: ctx => `  💰 R$ ${ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                            }
+                scales: {
+                    y: { 
+                        grid: { color: gridColor, drawBorder: false }, 
+                        border: { display: false },
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return 'R$ ' + val; }
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: gridColor, drawBorder: false },
-                            ticks: {
-                                callback: v => 'R$ ' + v.toLocaleString('pt-BR'),
-                                font: { size: 11 }
-                            },
-                            border: { display: false }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { size: 11, weight: '600' } },
-                            border: { display: false }
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+
+        // Configuração comum para os Doughnuts (mantido para a proporção)
+        const doughnutOptions = {
+            responsive: true, maintainAspectRatio: false, cutout: '78%',
+            plugins: { 
+                legend: { 
+                    position: 'bottom', 
+                    labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', font: { weight: '600' } } 
+                },
+                tooltip: tooltipCustom
+            }
+        };
+
+        // b) Gráfico CO2 (Polar Area - Excelente para impactos múltiplos)
+        const labelsCO2 = dadosConsumo.map(d => d.veiculo);
+        const dataCO2 = dadosConsumo.map(d => parseFloat(d.co2_total.replace(' kg', '')) || 0);
+
+        // Paleta extensa e vibrante para suportar muitos veículos
+        const baseColors = [
+            '16, 185, 129',  // Emerald
+            '59, 130, 246',  // Blue
+            '245, 158, 11',  // Amber
+            '239, 68, 68',   // Red
+            '139, 92, 246',  // Violet
+            '6, 182, 212',   // Cyan
+            '236, 72, 153',  // Pink
+            '132, 204, 22',  // Lime
+            '99, 102, 241',  // Indigo
+            '249, 115, 22',  // Orange
+            '20, 184, 166',  // Teal
+            '168, 85, 247',  // Purple
+            '234, 179, 8',   // Yellow
+            '217, 70, 239',  // Fuchsia
+            '14, 165, 233'   // Sky
+        ];
+
+        const bgColorsCO2 = labelsCO2.map((_, i) => `rgba(${baseColors[i % baseColors.length]}, 0.75)`);
+        const hoverColorsCO2 = labelsCO2.map((_, i) => `rgba(${baseColors[i % baseColors.length]}, 1)`);
+
+        const ctxCO2 = document.getElementById('chartCO2').getContext('2d');
+        new Chart(ctxCO2, {
+            type: 'polarArea',
+            data: {
+                labels: labelsCO2.length ? labelsCO2 : ['Sem dados'],
+                datasets: [{
+                    data: dataCO2.length ? dataCO2 : [1],
+                    backgroundColor: labelsCO2.length ? bgColorsCO2 : ['rgba(16, 185, 129, 0.75)'],
+                    borderWidth: 2, borderColor: isDark ? '#1e293b' : '#ffffff',
+                    hoverBackgroundColor: labelsCO2.length ? hoverColorsCO2 : ['rgba(16, 185, 129, 1)']
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                layout: { padding: 0 },
+                scales: {
+                    r: {
+                        ticks: { display: false },
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                        angleLines: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+                    }
+                },
+                plugins: {
+                    legend: { 
+                        position: 'right', 
+                        labels: { 
+                            padding: 12, 
+                            usePointStyle: true, 
+                            pointStyle: 'circle', 
+                            boxWidth: 8,
+                            font: { weight: '600', size: 10 } 
+                        } 
+                    },
+                    tooltip: {
+                        ...tooltipCustom,
+                        callbacks: {
+                            label: ctx => ` ${ctx.raw} kg de CO₂`
                         }
                     }
                 }
-            });
-        }
+            }
+        });
 
-        // ── Gráfico Doughnut (CO₂) ──
-        const canvasCO2 = document.getElementById('chartCO2');
-        if (canvasCO2) {
-            const skel = canvasCO2.previousSibling;
-            if (skel) skel.remove();
-            canvasCO2.style.display = 'block';
-
-            const paletaCO2 = isDark
-                ? ['#60a5fa', '#fde047', '#f87171', '#34d399', '#a78bfa', '#fb923c']
-                : ['#1e3a8a', '#facc15', '#ef4444', '#10b981', '#8b5cf6', '#f97316'];
-
-            new Chart(canvasCO2, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: co2,
-                        backgroundColor: paletaCO2.slice(0, labels.length),
-                        borderWidth: 3,
-                        borderColor: isDark ? '#1e293b' : '#ffffff',
-                        hoverOffset: 20,
-                        hoverBorderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 1400, easing: 'easeOutQuart', animateRotate: true },
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 14,
-                                padding: 18,
-                                font: { size: 12, weight: '600' },
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: isDark ? '#1e293b' : '#111827',
-                            titleColor: '#facc15',
-                            bodyColor: '#f8fafc',
-                            borderColor: isDark ? '#334155' : '#1e3a8a',
-                            borderWidth: 1,
-                            cornerRadius: 10,
-                            padding: 14,
-                            callbacks: {
-                                label: ctx => `  🌱 ${ctx.parsed.toFixed(2)} kg CO₂`
-                            }
+        // c) Gráfico Combustível vs Manutenção (Doughnut)
+        const ctxProp = document.getElementById('chartProporcao').getContext('2d');
+        new Chart(ctxProp, {
+            type: 'doughnut',
+            data: {
+                labels: ['Combustível', 'Manutenção'],
+                datasets: [{
+                    data: [custoCombustivelTotal, custoManutencaoTotal],
+                    backgroundColor: ['#3b82f6', '#f59e0b'],
+                    borderWidth: 3, borderColor: isDark ? '#1e293b' : '#ffffff',
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                ...doughnutOptions,
+                plugins: {
+                    ...doughnutOptions.plugins,
+                    tooltip: {
+                        ...tooltipCustom,
+                        callbacks: {
+                            label: ctx => ` R$ ${ctx.parsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
                         }
-                    },
-                    cutout: '72%'
+                    }
                 }
-            });
-        }
+            }
+        });
 
     } catch (erro) {
         console.error("❌ Erro ao processar dados do dashboard:", erro);
+        timelineEl.innerHTML = '<div style="color:var(--text-muted);padding:10px;">Erro ao carregar atividades.</div>';
     }
 }
 
-document.addEventListener('DOMContentLoaded', renderizarGraficos);
+document.addEventListener('DOMContentLoaded', renderizarDashboard);

@@ -29,12 +29,13 @@
         border-bottom: 1px solid var(--pro-border);
     }
     .header-section h1 {
-        font-size: 1.8rem;
+        font-size: clamp(1.3rem, 4vw, 1.8rem);
         font-weight: 800;
         color: var(--pro-header-text);
         margin: 0 0 6px;
         border: none;
         padding: 0;
+        word-break: break-word;
     }
     .header-section p {
         color: var(--text-muted);
@@ -45,12 +46,13 @@
     /* ─── KPI Cards ─── */
     .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr); /* 3 colunas por padrão */
         gap: 16px;
         margin-bottom: 28px;
     }
-    @media (max-width: 600px) {
-        .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (max-width: 400px) {
+        /* Em telas muito pequenas, empilha em coluna única */
+        .kpi-grid { grid-template-columns: 1fr; gap: 10px; }
     }
     .kpi-card {
         background: var(--pro-card-bg);
@@ -253,6 +255,47 @@
     }
     .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
+    /* ═══ RESPONSIVIDADE (CARDS MOBILE) ═══ */
+    .cards-container { display: none; margin-top: 16px; }
+
+    @media (max-width: 640px) {
+        .table-container { display: none; }
+        .cards-container { display: flex; flex-direction: column; gap: 16px; }
+
+        .kpi-grid { grid-template-columns: 1fr; }
+        
+        .mobile-card {
+            background: var(--pro-card-bg);
+            border: 1px solid var(--pro-border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--pro-border);
+            padding-bottom: 10px;
+        }
+        .mobile-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--pro-text);
+        }
+        .mobile-card-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+    }
+
     /* ─── CODE username ─── */
     code {
         font-size: 0.82rem;
@@ -424,13 +467,21 @@
             ➕ Novo Usuário
         </button>
     </div>
+
+    <div class="table-controls">
+        <div class="search-bar-container">
+            <input type="text" id="search-usuarios" placeholder="Pesquisar por nome, login, perfil...">
+        </div>
+    </div>
+
     <div class="table-container">
         <table aria-label="Tabela de usuários do sistema">
             <thead>
                 <tr>
-                    <th scope="col">Usuário</th>
-                    <th scope="col">Login</th>
-                    <th scope="col">Perfil</th>
+                    <th scope="col" class="sortable" onclick="ordenarUsuarios('nome', this)">Usuário <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarUsuarios('username', this)">Login <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarUsuarios('email', this)">E-mail <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarUsuarios('role', this)">Perfil <span class="sort-icon">↕️</span></th>
                     <th scope="col"><span class="sr-only">Ações</span></th>
                 </tr>
             </thead>
@@ -443,6 +494,14 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Container para Mobile Cards -->
+    <div class="cards-container" id="cards-usuarios">
+        <!-- Renderizado via JS no celular -->
+    </div>
+
+    <!-- Paginação -->
+    <div class="pagination" id="pagination-usuarios"></div>
 </div>
 
 <!-- Modal: Novo Usuário -->
@@ -460,6 +519,10 @@
             <div class="input-group-pro">
                 <label for="input-username">Nome de Usuário (login)</label>
                 <input type="text" id="input-username" class="input-pro" placeholder="Ex.: joao.silva" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="input-group-pro">
+                <label for="input-email">E-mail para Recuperação de Senha</label>
+                <input type="email" id="input-email" class="input-pro" placeholder="Ex.: joao@unilog.com.br" autocomplete="email" spellcheck="false" required>
             </div>
             <div class="input-group-pro">
                 <label for="input-senha">Senha</label>
@@ -490,6 +553,13 @@
 
 let meusId = null;
 
+let usuariosGeral = [];
+let usuariosFiltrados = [];
+let paginaAtual = 1;
+const itensPorPagina = 10;
+let colunaOrdem = null;
+let ordemAsc = true;
+
 async function carregarMe() {
     try {
         const res = await fetch('/api/me');
@@ -513,56 +583,174 @@ async function carregarUsuarios() {
             return;
         }
 
-        const usuarios = await res.json();
+        usuariosGeral = await res.json();
 
         // KPIs
-        const admins     = usuarios.filter(u => u.role === 'admin').length;
-        const operadores = usuarios.filter(u => u.role === 'operador').length;
-        document.getElementById('kpi-total').textContent     = usuarios.length;
+        const admins     = usuariosGeral.filter(u => u.role === 'admin').length;
+        const operadores = usuariosGeral.filter(u => u.role === 'operador').length;
+        document.getElementById('kpi-total').textContent     = usuariosGeral.length;
         document.getElementById('kpi-admins').textContent    = admins;
         document.getElementById('kpi-operadores').textContent = operadores;
 
-        if (usuarios.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4">
-                <div class="empty-state">
-                    <div class="empty-icon">👥</div>
-                    <p>Nenhum usuário cadastrado.</p>
-                </div>
-            </td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = usuarios.map(u => {
-            const iniciais  = u.nome.split(' ').slice(0,2).map(p => p[0].toUpperCase()).join('');
-            const roleBadge = u.role === 'admin'
-                ? `<span class="role-badge admin">🛡️ Admin</span>`
-                : `<span class="role-badge operador">🧑‍💻 Operador</span>`;
-
-            const ehEu = u.id === meusId;
-            const btnExcluir = ehEu
-                ? `<button class="btn-excluir" disabled title="Não pode excluir sua própria conta">🚫 Minha conta</button>`
-                : `<button class="btn-excluir" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🗑️ Excluir</button>`;
-
-            return `
-            <tr>
-                <td>
-                    <div class="user-cell">
-                        <div class="user-avatar">${iniciais}</div>
-                        <span class="user-name">${u.nome}</span>
-                    </div>
-                </td>
-                <td><code>@${u.username}</code></td>
-                <td>${roleBadge}</td>
-                <td>${btnExcluir}</td>
-            </tr>`;
-        }).join('');
+        aplicarFiltrosEOrdenacaoUsuarios();
 
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--danger);">
             ❌ Erro ao carregar usuários.
         </td></tr>`;
+        document.getElementById('cards-usuarios').innerHTML = `<div class="empty-state" style="color:var(--danger);">❌ Erro ao carregar usuários.</div>`;
     }
 }
+
+function aplicarFiltrosEOrdenacaoUsuarios() {
+    const termo = (document.getElementById('search-usuarios')?.value || '').toLowerCase();
+    
+    usuariosFiltrados = usuariosGeral.filter(u => 
+        String(u.nome).toLowerCase().includes(termo) ||
+        String(u.username).toLowerCase().includes(termo) ||
+        String(u.role).toLowerCase().includes(termo)
+    );
+
+    if (colunaOrdem) {
+        usuariosFiltrados.sort((a, b) => {
+            let valA = String(a[colunaOrdem] || '').toLowerCase();
+            let valB = String(b[colunaOrdem] || '').toLowerCase();
+            if (valA < valB) return ordemAsc ? -1 : 1;
+            if (valA > valB) return ordemAsc ? 1 : -1;
+            return 0;
+        });
+    }
+
+    paginaAtual = 1;
+    renderizarUsuarios();
+}
+
+function renderizarUsuarios() {
+    const tbody = document.getElementById('tbody-usuarios');
+    const cardsContainer = document.getElementById('cards-usuarios');
+    const pagination = document.getElementById('pagination-usuarios');
+
+    if (!tbody) return;
+
+    if (usuariosFiltrados.length === 0) {
+        const empty = `<div class="empty-state"><div class="empty-icon">👥</div><p>Nenhum usuário encontrado.</p></div>`;
+        tbody.innerHTML = `<tr><td colspan="4">${empty}</td></tr>`;
+        cardsContainer.innerHTML = empty;
+        pagination.innerHTML = '';
+        return;
+    }
+
+    const totalPaginas = Math.ceil(usuariosFiltrados.length / itensPorPagina);
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+    if (paginaAtual < 1) paginaAtual = 1;
+
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const itensPagina = usuariosFiltrados.slice(inicio, fim);
+
+    tbody.innerHTML = itensPagina.map(u => {
+        const iniciais  = u.nome.split(' ').slice(0,2).map(p => p[0].toUpperCase()).join('');
+        const roleBadge = u.role === 'admin'
+            ? `<span class="role-badge admin">🛡️ Admin</span>`
+            : `<span class="role-badge operador">🧑‍💻 Operador</span>`;
+
+        const ehEu = u.id === meusId;
+        const btnExcluir = ehEu
+            ? `<button class="btn-excluir" disabled title="Não pode excluir sua própria conta">🚫 Minha conta</button>`
+            : `<button class="btn-excluir" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')">🗑️ Excluir</button>`;
+
+        return `
+        <tr>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar">${iniciais}</div>
+                    <span class="user-name">${u.nome}</span>
+                </div>
+            </td>
+            <td><code>@${u.username}</code></td>
+            <td>${u.email || '<span style="color:var(--text-muted);">Não cadastrado</span>'}</td>
+            <td>${roleBadge}</td>
+            <td>${btnExcluir}</td>
+        </tr>`;
+    }).join('');
+
+    cardsContainer.innerHTML = itensPagina.map(u => {
+        const iniciais  = u.nome.split(' ').slice(0,2).map(p => p[0].toUpperCase()).join('');
+        const roleBadge = u.role === 'admin'
+            ? `<span class="role-badge admin">🛡️ Admin</span>`
+            : `<span class="role-badge operador">🧑‍💻 Operador</span>`;
+        
+        const ehEu = u.id === meusId;
+        const btnExcluirMobile = ehEu
+            ? `<button class="btn-excluir" disabled style="width: 100%; justify-content: center; margin-top: 8px;">🚫 Minha conta</button>`
+            : `<button class="btn-excluir" onclick="excluirUsuario(${u.id}, '${u.nome.replace(/'/g,"\\'")}')" style="width: 100%; justify-content: center; margin-top: 8px;">🗑️ Excluir Usuário</button>`;
+
+        return `
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <div class="user-cell">
+                    <div class="user-avatar">${iniciais}</div>
+                    <span class="user-name">${u.nome}</span>
+                </div>
+            </div>
+            <div class="mobile-card-row">
+                <span class="mobile-card-label">Login:</span>
+                <span><code>@${u.username}</code></span>
+            </div>
+            <div class="mobile-card-row">
+                <span class="mobile-card-label">E-mail:</span>
+                <span style="font-size: 0.9rem;">${u.email || '-'}</span>
+            </div>
+            <div class="mobile-card-row">
+                <span class="mobile-card-label">Perfil:</span>
+                <span>${roleBadge}</span>
+            </div>
+            ${btnExcluirMobile}
+        </div>`;
+    }).join('');
+
+    if (totalPaginas > 1 && pagination) {
+        let pagHtml = `<button class="page-btn" ${paginaAtual === 1 ? 'disabled' : ''} onclick="mudarPaginaUsuarios(${paginaAtual - 1})">Anterior</button>`;
+        pagHtml += `<span class="page-info">Página ${paginaAtual} de ${totalPaginas}</span>`;
+        pagHtml += `<button class="page-btn" ${paginaAtual === totalPaginas ? 'disabled' : ''} onclick="mudarPaginaUsuarios(${paginaAtual + 1})">Próximo</button>`;
+        pagination.innerHTML = pagHtml;
+    } else {
+        pagination.innerHTML = '';
+    }
+}
+
+function mudarPaginaUsuarios(novaPagina) {
+    paginaAtual = novaPagina;
+    renderizarUsuarios();
+}
+
+function ordenarUsuarios(coluna, thElement) {
+    if (colunaOrdem === coluna) {
+        ordemAsc = !ordemAsc;
+    } else {
+        colunaOrdem = coluna;
+        ordemAsc = true;
+    }
+
+    const tabela = document.getElementById('tbody-usuarios')?.closest('table');
+    if (tabela) {
+        tabela.querySelectorAll('th.sortable').forEach(th => {
+            th.classList.remove('active', 'asc', 'desc');
+            th.querySelector('.sort-icon').textContent = '↕️';
+        });
+    }
+
+    if (thElement) {
+        thElement.classList.add('active', ordemAsc ? 'asc' : 'desc');
+        thElement.querySelector('.sort-icon').textContent = ordemAsc ? '⬆️' : '⬇️';
+    }
+
+    aplicarFiltrosEOrdenacaoUsuarios();
+}
+
+document.getElementById('search-usuarios')?.addEventListener('input', () => {
+    aplicarFiltrosEOrdenacaoUsuarios();
+});
 
 async function excluirUsuario(id, nome) {
     if (!confirm(`⚠️ Confirma a exclusão de "${nome}"?\n\nEsta ação não pode ser desfeita.`)) return;
@@ -607,11 +795,12 @@ document.getElementById('form-novo-usuario').addEventListener('submit', async fu
 
     const nome     = document.getElementById('input-nome').value.trim();
     const username = document.getElementById('input-username').value.trim();
+    const email    = document.getElementById('input-email').value.trim();
     const senha    = document.getElementById('input-senha').value;
     const role     = document.getElementById('input-role').value;
 
-    if (!nome || !username || !senha) {
-        showToast('⚠️ Preencha todos os campos obrigatórios.', 'error');
+    if (!nome || !username || !email || !senha) {
+        showToast('⚠️ Preencha todos os campos obrigatórios (incluindo o e-mail).', 'error');
         return;
     }
     if (senha.length < 6) {
@@ -627,7 +816,7 @@ document.getElementById('form-novo-usuario').addEventListener('submit', async fu
         const res = await fetch('/api/usuarios', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, username, senha, role })
+            body: JSON.stringify({ nome, username, email, senha, role })
         });
         const data = await res.json();
 

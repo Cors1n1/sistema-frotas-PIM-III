@@ -62,6 +62,8 @@ O **Sistema de Gestão de Frotas Integrado** é uma aplicação web full-stack d
 | Flask-CORS       | 5.x       | Backend     | Permitir requisições cross-origin             |
 | Flask-Login      | 0.6.x     | Backend     | Gerenciamento de sessões autenticadas          |
 | Flask-Bcrypt     | 1.0.x     | Backend     | Hash seguro de senhas (algoritmo bcrypt)       |
+| itsdangerous     | 2.x       | Backend     | Geração e validação de tokens de recuperação  |
+| waitress         | 3.x       | Backend     | Servidor WSGI de produção (Windows-friendly)  |
 | psycopg2-binary  | 2.x       | Backend     | Driver nativo para PostgreSQL                 |
 | python-dotenv    | 1.x       | Backend     | Carregamento de variáveis de ambiente (.env)  |
 | Pandas           | 2.x       | Backend     | Manipulação de dados e integração SQL→ML      |
@@ -85,18 +87,18 @@ sistema_frotas/
 │
 ├── backend/                        # Camada do Servidor
 │   ├── .env                        # Variáveis de ambiente (NÃO versionar!)
-│   ├── app.py                      # Controlador principal (com autenticação)
+│   ├── app.py                      # Controlador principal (autenticação + SMTP + rotas)
 │   ├── models.py                   # Classes POO + classe Usuario (Flask-Login)
 │   ├── database.py                 # Conexão com PostgreSQL
 │   ├── ml.py                       # Módulo de Machine Learning
-│   ├── requirements.txt            # Dependências Python (incl. Flask-Login, Bcrypt)
-│   ├── criar_tabela_usuarios.sql   # [NOVO] Script DDL da tabela de usuários
-│   └── criar_admin.py              # [NOVO] Script para criar o primeiro admin
+│   ├── requirements.txt            # Dependências Python
+│   ├── criar_admin.py              # Script para criar o primeiro administrador
+│   └── seed_apresentacao.py        # ⭐ Seed rico para demonstração (22 veíc., 20 mot.)
 │
 ├── frontend/                       # Camada do Cliente
-│   ├── base.html                   # Template base (com info de usuário + logout)
-│   ├── login.html                  # [NOVO] Página de autenticação
-│   ├── usuarios.html               # [NOVO] Painel de gerenciamento de usuários
+│   ├── base.html                   # Template base (sidebar, tema, acessibilidade, logout)
+│   ├── login.html                  # Autenticação (glassmorphism + recuperação de senha)
+│   ├── usuarios.html               # Painel de gerenciamento de usuários (somente admin)
 │   ├── index.html                  # Veículos + Mapa de Telemetria
 │   ├── motoristas.html             # Gestão de Motoristas
 │   ├── abastecimentos.html         # Controle de Abastecimentos
@@ -104,8 +106,11 @@ sistema_frotas/
 │   ├── dashboard.html              # Dashboard Executivo (KPIs + Gráficos)
 │   ├── analise.html                # Análise IA + Simulador de Rotas
 │   │
+│   ├── imagens/
+│   │   └── logo.jpg                # Logo da empresa (UniLog) — usada no e-mail de reset
+│   │
 │   ├── css/
-│   │   └── style.css               # Design System completo (com estilos de login)
+│   │   └── style.css               # Design System completo
 │   │
 │   └── js/
 │       ├── app.js                  # Lógica de veículos + API FIPE
@@ -148,9 +153,8 @@ pip install -r requirements.txt
 
 # 3. CONFIGURAR O BANCO DE DADOS
 # Criar o banco "pim_trab" no PostgreSQL com as tabelas:
-# (ver documento 01_Tabelas_e_Relacionamentos.md para as demais)
+# (ver README.md ou 01_Tabelas_e_Relacionamentos.md para o script completo)
 psql -U postgres -c "CREATE DATABASE pim_trab;"
-psql -U postgres -d pim_trab -f criar_tabela_usuarios.sql
 
 # 4. CONFIGURAR O ARQUIVO .env
 # Criar o arquivo backend/.env com:
@@ -159,12 +163,27 @@ psql -U postgres -d pim_trab -f criar_tabela_usuarios.sql
 #   DB_USER=postgres
 #   DB_PASSWORD=<sua_senha>
 #   SECRET_KEY=<chave_segura_gerada_com_secrets.token_hex(32)>
+#
+#   # Opcional — recuperação de senha por e-mail:
+#   SMTP_SERVER=smtp.gmail.com
+#   SMTP_PORT=587
+#   SMTP_USER=seu_email@gmail.com
+#   SMTP_PASSWORD=sua_senha_de_app_gmail
 
 # 5. CRIAR O PRIMEIRO ADMINISTRADOR
 python criar_admin.py
 
+# 5.1 (ALTERNATIVA) Popular com dados ricos para demonstração
+python seed_apresentacao.py
+# → Cria: 22 veículos, 20 motoristas, histórico 12 meses
+# → Login pronto: corsini / Pulga@2013
+
 # 6. INICIAR O SERVIDOR
+# Desenvolvimento:
 python app.py
+
+# Produção (Windows) com Waitress:
+waitress-serve --port=8000 app:app
 
 # 7. ACESSAR O SISTEMA
 # Abrir o navegador em: http://localhost:5000/login
@@ -211,11 +230,24 @@ CREATE TABLE manutencoes (
     id              SERIAL        PRIMARY KEY,
     veiculo_id      INTEGER       NOT NULL REFERENCES veiculos(id),
     data_manutencao DATE          NOT NULL,
-    tipo            VARCHAR(20)   NOT NULL,
+    tipo            VARCHAR(20)   NOT NULL,  -- 'Preventiva', 'Corretiva' ou 'Preditiva'
     custo           DECIMAL(10,2) NOT NULL,
     descricao       TEXT          NOT NULL,
     quilometragem   INTEGER       NOT NULL
 );
+
+-- Tabela de usuários (autenticação + recuperação de senha)
+CREATE TABLE usuarios (
+    id          SERIAL       PRIMARY KEY,
+    nome        VARCHAR(150) NOT NULL,
+    username    VARCHAR(80)  UNIQUE NOT NULL,
+    senha_hash  VARCHAR(255) NOT NULL,
+    role        VARCHAR(20)  NOT NULL DEFAULT 'operador'
+                             CHECK (role IN ('admin', 'operador')),
+    email       VARCHAR(255) UNIQUE,  -- para recuperação de senha
+    criado_em   TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_usuarios_username ON usuarios (username);
 ```
 
 ---
@@ -257,9 +289,11 @@ O backend expõe as seguintes endpoints:
 | GET    | `/api/dashboard/ranking`          | Requer login | Top 5 eco-drivers               |
 | POST   | `/api/dashboard/simular_viagem`   | Requer login | Distância, tempo, custo, rota  |
 | GET    | `/api/usuarios`                   | Somente Admin| Lista de usuários cadastrados  |
-| POST   | `/api/usuarios`                   | Somente Admin| nome, username, senha, role     |
+| POST   | `/api/usuarios`                   | Somente Admin| nome, username, email, senha, role |
 | DELETE | `/api/usuarios/<id>`              | Somente Admin| Remove usuário por ID          |
 | GET    | `/api/me`                         | Requer login | Dados do usuário logado        |
+| POST   | `/api/auth/forgot-password`       | Pública      | email → envia link de reset    |
+| POST   | `/api/auth/reset-password`        | Pública      | token + senha → atualiza hash  |
 
 ---
 
@@ -306,6 +340,8 @@ Uso: Autocomplete no campo de origem/destino do simulador
 | 6  | Mínimo de 3 registros para previsão ML | `ml.py`             | Qualidade dados|
 | 7  | Emissão CO₂ = litros × 2.3 kg         | `models.py` property| Ambiental      |
 | 8  | Filtro de motoristas por CNH no frontend| `abastecimentos.js`| UX             |
+| 9  | Token de reset expira em 30 minutos    | `app.py` itsdangerous| Segurança     |
+| 10 | Admin não pode excluir a própria conta | `app.py` DELETE user| Integridade    |
 
 ---
 
@@ -359,11 +395,12 @@ O diagrama abaixo mostra como todas as funcionalidades se integram:
 | #  | Limitação                              | Impacto                           | Status / Melhoria                 |
 |----|----------------------------------------|-----------------------------------|-----------------------------------|
 | 1  | ~~Sem autenticação de usuários~~       | ~~Qualquer pessoa pode acessar~~  | ✅ **Implementado** (Flask-Login + Bcrypt) |
-| 2  | Conexão nova a cada requisição         | Não é escalável para muitos users | Utilizar pool de conexões (pgBouncer) |
-| 3  | Dados de telemetria (mapa) simulados   | Posição dos veículos é fictícia   | Integrar com GPS real (IoT)       |
-| 4  | Modelo ML com uma única feature        | Previsão simplificada             | Adicionar mais variáveis (idade, tipo) |
-| 5  | Sem operações DELETE/PUT              | Não é possível editar/excluir     | Implementar CRUD completo         |
-| 6  | Sem paginação nas tabelas             | Performance com muitos registros  | Implementar paginação com LIMIT/OFFSET |
+| 2  | ~~Sem recuperação de senha~~           | ~~Senha perdida = conta inacessível~~ | ✅ **Implementado** (SMTP + itsdangerous) |
+| 3  | Conexão nova a cada requisição         | Não é escalável para muitos users | Utilizar pool de conexões (pgBouncer) |
+| 4  | Dados de telemetria (mapa) simulados   | Posição dos veículos é fictícia   | Integrar com GPS real (IoT)       |
+| 5  | Modelo ML com uma única feature        | Previsão simplificada             | Adicionar mais variáveis (idade, tipo) |
+| 6  | Sem operações DELETE/PUT              | Não é possível editar/excluir     | Implementar CRUD completo         |
+| 7  | Sem paginação nas tabelas             | Performance com muitos registros  | Implementar paginação com LIMIT/OFFSET |
 
 ---
 
@@ -371,6 +408,7 @@ O diagrama abaixo mostra como todas as funcionalidades se integram:
 
 ### Curto Prazo (Próxima Sprint)
 - ✅ ~~**Autenticação:** Sistema de login com roles (Admin/Operador)~~ — **Implementado**
+- ✅ ~~**Recuperação de senha:** Reset por e-mail com token temporário~~ — **Implementado**
 - ✏️ **CRUD completo:** Edição e exclusão de registros existentes
 - 📄 **Exportação PDF:** Relatórios exportáveis para impressão
 

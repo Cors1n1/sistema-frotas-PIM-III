@@ -162,7 +162,7 @@ body {
     position: fixed;
     height: 100vh;
     transition: width var(--transition-smooth), background var(--transition-smooth), border-color var(--transition-smooth);
-    z-index: 1000;
+    z-index: 9995;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -200,6 +200,10 @@ body {
     color: var(--text-main);
     letter-spacing: -0.02em;
     line-height: 1.2;
+}
+/* Evita scroll horizontal sem quebrar position:fixed (VLibras, toasts, sidebar) */
+main {
+    overflow-x: hidden;
 }
 
 .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
@@ -281,6 +285,8 @@ body:has(.sidebar.collapsed) main {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 28px;
+    position: relative;
+    z-index: 9990;
 }
 
 .top-actions-group {
@@ -441,6 +447,35 @@ body:has(.sidebar.collapsed) main {
 .a11y-option:last-child { border-bottom: none; }
 .a11y-option:hover { color: var(--primary-blue); }
 
+/* Botão/Link LIBRAS no painel de acessibilidade */
+.a11y-libras-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color var(--transition-fast), background var(--transition-fast);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    margin: 0;
+    text-align: left;
+    text-decoration: none; /* para quando for <a> */
+}
+.a11y-libras-btn:hover {
+    color: #059669;
+    background: rgba(5, 150, 105, 0.06);
+}
+.a11y-libras-btn span {
+    font-size: 1.1rem;
+}
+
 .a11y-option input[type="checkbox"] {
     width: 18px; height: 18px;
     accent-color: var(--primary-blue);
@@ -450,7 +485,7 @@ body:has(.sidebar.collapsed) main {
 /* ═══ 8. RESPONSIVIDADE GLOBAL ═══ */
 
 /* Tablet */
-@media (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) {
     main { padding: 24px 20px 50px; }
     .sidebar { width: 72px; }
     .sidebar .nav-text, .sidebar .logo-title, .sidebar .sidebar-footer { display: none; }
@@ -589,3 +624,125 @@ body:has(.sidebar.collapsed) main {
 .sidebar.collapsed .sidebar-user-avatar { margin: 0 auto; }
 .sidebar.collapsed .sidebar-logout > span:last-child { display: none; }
 .sidebar.collapsed .sidebar-logout { justify-content: center; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTROLES DE TABELA (BUSCA, PAGINAÇÃO, ORDENAÇÃO)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Barra de Busca */
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.search-bar-container {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+
+.search-bar-container input {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-color);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+}
+
+.search-bar-container input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px var(--primary-blue-glow);
+}
+
+.search-bar-container::before {
+    content: '🔍';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    opacity: 0.5;
+}
+
+/* Headers Ordenáveis */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    position: relative;
+    padding-right: 24px !important;
+}
+
+th.sortable:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+th.sortable .sort-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    font-size: 0.75rem;
+}
+
+th.sortable.active .sort-icon {
+    opacity: 1;
+    color: var(--secondary-yellow);
+}
+
+/* Paginação */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: var(--primary-blue-glow);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+
+.page-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 8px;
+}

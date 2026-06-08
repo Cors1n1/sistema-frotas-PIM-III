@@ -365,14 +365,16 @@ class Usuario(UserMixin):
         id (int): PK da tabela usuarios.
         nome (str): Nome completo de exibição.
         username (str): Login único (sem espaços).
+        email (str): E-mail do usuário para recuperação de senha.
         senha_hash (str): Hash bcrypt da senha (nunca texto puro).
         role (str): Perfil do usuário ('admin' ou 'operador').
     """
 
-    def __init__(self, id, nome, username, senha_hash, role='operador'):
+    def __init__(self, id, nome, username, senha_hash, role='operador', email=None):
         self.id = id
         self.nome = nome
         self.username = username
+        self.email = email
         self.senha_hash = senha_hash  # Hash bcrypt — nunca a senha real
         self.role = role
 
@@ -386,5 +388,6 @@ class Usuario(UserMixin):
             "id": self.id,
             "nome": self.nome,
             "username": self.username,
+            "email": self.email,
             "role": self.role
         }

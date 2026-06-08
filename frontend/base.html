@@ -1,111 +1,436 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light" data-contrast="normal" data-fontsize="normal">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sistema de Gestão de Frotas Integrado — PIM III UNIP ADS. Monitoramento, IA e sustentabilidade.">
+    <title>{% block title %}UniLog - Gestão de Frotas{% endblock %}</title>
+
+    <!-- SEO Meta -->
+    <meta name="description" content="Sistema de Gestão de Frotas — PIM III UNIP">
     <meta name="theme-color" content="#1e3a8a">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
-    <title>Gestão de Frotas — {% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Favicon inline -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
+
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="/css/style.css">
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    <!-- ═══════════════════════════════════
+         ACESSIBILIDADE: SKIP NAV
+    ═══════════════════════════════════ -->
+    <a href="#main-content" class="skip-link">Ir para o conteúdo</a>
 
-    <!-- Acessibilidade: Skip Navigation -->
-    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+    <!-- ═══════════════════════════════════
+         OVERLAY MOBILE (fecha sidebar ao clicar fora)
+    ═══════════════════════════════════ -->
+    <div id="sidebar-overlay" aria-hidden="true"></div>
 
+    <!-- ═══════════════════════════════════
+         SIDEBAR DE NAVEGAÇÃO
+    ═══════════════════════════════════ -->
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu principal">
-        <div class="logo-container">
-            <div class="logo-box" aria-hidden="true">F</div>
-            <div>
-                <h1 class="logo-title" style="font-size: 1.05rem; color: var(--text-main); margin:0; border:none; padding:0;">Gestão de Frotas</h1>
-                <span class="logo-title" style="font-size: 0.65rem; color: var(--text-muted); font-weight: 500;">PIM III — UNIP ADS</span>
+
+        <!-- Logo -->
+        <div class="logo-container" style="gap: 12px; display: flex; align-items: center;">
+            <img src="imagens/logo.jpg" alt="Logo UniLog" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <div class="logo-title" style="font-size: 1.45rem; font-weight: 900; line-height: 1.1;">UniLog</div>
+        </div>
+
+        <!-- Usuário logado -->
+        <div class="sidebar-user" id="sidebar-user-info">
+            <div class="sidebar-user-avatar" id="user-avatar-initials">?</div>
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name" id="user-display-name">Carregando...</span>
+                <span class="sidebar-user-role" id="user-display-role">—</span>
             </div>
         </div>
-        <nav>
-            <a href="/" class="{{ 'active' if request.path == '/' else '' }}" aria-current="{{ 'page' if request.path == '/' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">🚗</span> <span class="nav-text">Veículos</span>
+
+        <!-- Logout -->
+        <a href="/logout" class="sidebar-logout" aria-label="Sair do sistema">
+            <span aria-hidden="true">🚪</span>
+            <span>Sair</span>
+        </a>
+
+        <!-- Links de navegação -->
+        <nav aria-label="Navegação principal">
+            <a href="/" id="nav-frota" aria-label="Controle de Frota">
+                <span class="nav-icon" aria-hidden="true">🚗</span>
+                <span class="nav-text">Frota</span>
             </a>
-            <a href="/motoristas.html" class="{{ 'active' if request.path == '/motoristas.html' else '' }}" aria-current="{{ 'page' if request.path == '/motoristas.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">🧑‍✈️</span> <span class="nav-text">Motoristas</span>
+            <a href="/dashboard.html" id="nav-dashboard" aria-label="Dashboard Executivo">
+                <span class="nav-icon" aria-hidden="true">📊</span>
+                <span class="nav-text">Dashboard</span>
             </a>
-            <a href="/abastecimentos.html" class="{{ 'active' if request.path == '/abastecimentos.html' else '' }}" aria-current="{{ 'page' if request.path == '/abastecimentos.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">⛽</span> <span class="nav-text">Abastecimentos</span>
+            <a href="/motoristas.html" id="nav-motoristas" aria-label="Gestão de Motoristas">
+                <span class="nav-icon" aria-hidden="true">🧑‍✈️</span>
+                <span class="nav-text">Motoristas</span>
             </a>
-            <a href="/manutencoes.html" class="{{ 'active' if request.path == '/manutencoes.html' else '' }}" aria-current="{{ 'page' if request.path == '/manutencoes.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">🔧</span> <span class="nav-text">Manutenções</span>
+            <a href="/abastecimentos.html" id="nav-abastecimentos" aria-label="Abastecimentos">
+                <span class="nav-icon" aria-hidden="true">⛽</span>
+                <span class="nav-text">Abastecimentos</span>
             </a>
-            <a href="/dashboard.html" class="{{ 'active' if request.path == '/dashboard.html' else '' }}" aria-current="{{ 'page' if request.path == '/dashboard.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">📊</span> <span class="nav-text">Dashboard</span>
+            <a href="/manutencoes.html" id="nav-manutencoes" aria-label="Manutenções">
+                <span class="nav-icon" aria-hidden="true">🔧</span>
+                <span class="nav-text">Manutenções</span>
             </a>
-            <a href="/analise.html" class="{{ 'active' if request.path == '/analise.html' else '' }}" aria-current="{{ 'page' if request.path == '/analise.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">🧠</span> <span class="nav-text">Análise (IA)</span>
+            <a href="/analise.html" id="nav-analise" aria-label="Análise e Relatórios">
+                <span class="nav-icon" aria-hidden="true">🤖</span>
+                <span class="nav-text">IA & Análise</span>
             </a>
-            {% if current_user.is_authenticated and current_user.is_admin() %}
-            <a href="/usuarios.html" class="{{ 'active' if request.path == '/usuarios.html' else '' }}" aria-current="{{ 'page' if request.path == '/usuarios.html' else 'false' }}">
-                <span class="nav-icon" aria-hidden="true">👥</span> <span class="nav-text">Usuários</span>
+            <a href="/usuarios.html" id="nav-usuarios" aria-label="Gestão de Usuários" class="admin-only" style="display:none;">
+                <span class="nav-icon" aria-hidden="true">👥</span>
+                <span class="nav-text">Usuários</span>
             </a>
-            {% endif %}
         </nav>
+
+        <!-- Rodapé da sidebar -->
         <div class="sidebar-footer">
-            {% if current_user.is_authenticated %}
-            <div class="sidebar-user" aria-label="Usuário logado">
-                <div class="sidebar-user-avatar" aria-hidden="true">
-                    {{ current_user.nome[:2].upper() }}
-                </div>
-                <div class="sidebar-user-info nav-text">
-                    <span class="sidebar-user-name">{{ current_user.nome.split()[0] }}</span>
-                    <span class="sidebar-user-role">{{ '🛡️ Admin' if current_user.is_admin() else '🧑‍💻 Operador' }}</span>
-                </div>
-            </div>
-            <a href="/logout" class="sidebar-logout nav-text" aria-label="Sair do sistema">
-                <span aria-hidden="true">🚪</span> <span>Sair</span>
-            </a>
-            {% endif %}
-            <span style="font-weight:700;">TransLog Soluções</span><br>
-            Sistema Integrado v2.1
+            PIM III — UNIP ADS<br>
+            UniLog Soluções Logísticas
         </div>
     </aside>
 
-    <main id="main-content" tabindex="-1" role="main">
-        <div class="top-actions">
+    <!-- ═══════════════════════════════════
+         CONTEÚDO PRINCIPAL
+    ═══════════════════════════════════ -->
+    <main id="main-content" tabindex="-1">
+
+        <!-- Barra Superior -->
+        <div class="top-actions" role="toolbar" aria-label="Ações rápidas">
+
+            <!-- Botão Hambúrguer (Mobile) + Colapsar (Desktop) -->
             <div class="top-actions-group">
-                <button class="icon-btn" onclick="toggleSidebar()" aria-label="Menu" title="Abrir/Fechar Menu">☰</button>
+                <button
+                    class="icon-btn"
+                    id="btn-toggle-sidebar"
+                    aria-label="Abrir ou fechar menu lateral"
+                    aria-expanded="false"
+                    aria-controls="sidebar"
+                    title="Menu"
+                >☰</button>
             </div>
+
+            <!-- Controles de tema e acessibilidade -->
             <div class="top-actions-group">
-                <button class="icon-btn" onclick="toggleA11yPanel()" aria-label="Acessibilidade" title="Opções de Acessibilidade">♿</button>
-                <button class="icon-btn" onclick="toggleTheme()" aria-label="Tema" title="Alternar Tema Claro/Escuro">🌙</button>
+                <button
+                    class="icon-btn"
+                    id="btn-theme"
+                    aria-label="Alternar tema claro/escuro"
+                    title="Tema"
+                >🌙</button>
+
+                <button
+                    class="icon-btn"
+                    id="btn-a11y"
+                    aria-label="Configurações de acessibilidade"
+                    aria-expanded="false"
+                    aria-controls="painel-acessibilidade"
+                    title="Acessibilidade"
+                >♿</button>
             </div>
         </div>
 
+        <!-- Painel de Acessibilidade -->
+        <div
+            class="a11y-panel"
+            id="painel-acessibilidade"
+            role="dialog"
+            aria-label="Opções de Acessibilidade"
+            aria-modal="false"
+        >
+            <h3>Acessibilidade</h3>
+            <label class="a11y-option">
+                <input type="checkbox" id="toggle-contrast" aria-label="Ativar alto contraste">
+                Alto Contraste
+            </label>
+            <label class="a11y-option">
+                <input type="checkbox" id="toggle-fontsize" aria-label="Aumentar tamanho da fonte">
+                Fonte Grande
+            </label>
+            <button
+                class="a11y-option a11y-libras-btn"
+                id="btn-abrir-vlibras"
+                aria-label="Ativar tradutor de LIBRAS (VLibras)"
+                title="Ativar VLibras — Tradutor de Língua Brasileira de Sinais"
+            >
+                <span aria-hidden="true">🤟</span>
+                LIBRAS (VLibras)
+            </button>
+        </div>
+
+        <!-- Conteúdo da Página Filha -->
         {% block content %}{% endblock %}
+
+        <!-- Rodapé Global da Aplicação -->
+        <footer role="contentinfo" style="margin-top: 48px; padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.75rem; border-top: 1px solid var(--border-color); letter-spacing: 0.5px;">
+            <strong style="color: var(--text-main); font-size: 0.85rem;">UniLog Soluções Logísticas</strong><br>
+            PIM III — Projeto Integrado Multidisciplinar | UNIP — Análise e Desenvolvimento de Sistemas<br>
+            <div style="margin-top: 12px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; align-items: center;">
+                <span>♿ Acessível em LIBRAS via <a href="https://www.gov.br/governodigital/vlibras" target="_blank" rel="noopener" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">VLibras</a></span>
+                <a href="https://br.linkedin.com/in/victor-corsini" target="_blank" rel="noopener" style="color: var(--primary-blue); font-weight: 700; opacity: 0.9; text-decoration: none; cursor: pointer;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">👨‍💻 Desenvolvido por Corsini</a>
+            </div>
+        </footer>
+
     </main>
 
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
+    <!-- ═══════════════════════════════════
+         TOAST DE NOTIFICAÇÕES
+    ═══════════════════════════════════ -->
+    <div class="toast-container" id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
 
-    <!-- Painel de Acessibilidade -->
-    <div class="a11y-panel" id="a11y-panel" role="dialog" aria-label="Opções de Acessibilidade">
-        <h3>♿ Acessibilidade</h3>
-        <label class="a11y-option">
-            <input type="checkbox" id="toggle-contrast" onchange="toggleContrast()">
-            Alto Contraste
-        </label>
-        <label class="a11y-option">
-            <input type="checkbox" id="toggle-fontsize" onchange="cycleFontSize()">
-            Texto Ampliado
-        </label>
-        <label class="a11y-option">
-            <input type="checkbox" id="toggle-motion" onchange="toggleReducedMotion()">
-            Reduzir Animações
-        </label>
-        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); text-align: center;">
-            <span style="font-size: 0.7rem; color: var(--text-muted);">VLibras ativo para LIBRAS 🤟</span>
-        </div>
-    </div>
+    <!-- ═══════════════════════════════════
+         SCRIPTS GLOBAIS
+    ═══════════════════════════════════ -->
+    <script>
+    (function() {
+        /* ───────────────────────────────────────
+           1. TEMA (Dark / Light) — persistido em localStorage
+        ─────────────────────────────────────── */
+        const html       = document.documentElement;
+        const btnTheme   = document.getElementById('btn-theme');
+        const savedTheme = localStorage.getItem('theme') || 'light';
 
-    <!-- VLibras — Tradução em LIBRAS (Governo Federal) -->
+        html.setAttribute('data-theme', savedTheme);
+        btnTheme.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        btnTheme.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            const next    = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            btnTheme.textContent = next === 'dark' ? '☀️' : '🌙';
+        });
+
+        /* ───────────────────────────────────────
+           2. SIDEBAR — Toggle Mobile vs Desktop
+        ─────────────────────────────────────── */
+        const sidebar  = document.getElementById('sidebar');
+        const overlay  = document.getElementById('sidebar-overlay');
+        const btnMenu  = document.getElementById('btn-toggle-sidebar');
+        const MOBILE_BP = 768; // px
+
+        function isMobile() {
+            return window.innerWidth <= MOBILE_BP;
+        }
+
+        function openSidebarMobile() {
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('active');
+            btnMenu.setAttribute('aria-expanded', 'true');
+            btnMenu.textContent = '✕';
+        }
+
+        function closeSidebarMobile() {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            btnMenu.setAttribute('aria-expanded', 'false');
+            btnMenu.textContent = '☰';
+        }
+
+        function toggleDesktop() {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            btnMenu.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
+        }
+
+        // Restaura estado colapsado no desktop
+        if (!isMobile() && localStorage.getItem('sidebarCollapsed') === '1') {
+            sidebar.classList.add('collapsed');
+        }
+
+        btnMenu.addEventListener('click', () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('mobile-open')) {
+                    closeSidebarMobile();
+                } else {
+                    openSidebarMobile();
+                }
+            } else {
+                toggleDesktop();
+            }
+        });
+
+        // Fecha sidebar mobile ao clicar no overlay
+        overlay.addEventListener('click', closeSidebarMobile);
+
+        // Fecha sidebar mobile ao pressionar ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+                closeSidebarMobile();
+            }
+        });
+
+        // Garante estado correto ao redimensionar janela
+        window.addEventListener('resize', () => {
+            if (!isMobile()) {
+                closeSidebarMobile(); // limpa classes mobile
+            }
+        });
+
+        /* ───────────────────────────────────────
+           3. LINK ATIVO NA SIDEBAR
+        ─────────────────────────────────────── */
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar nav a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentPath || (href === '/' && currentPath === '/')) {
+                link.classList.add('active');
+                link.setAttribute('aria-current', 'page');
+            } else if (href !== '/' && currentPath.includes(href)) {
+                link.classList.add('active');
+                link.setAttribute('aria-current', 'page');
+            }
+        });
+
+        /* ───────────────────────────────────────
+           4. USUÁRIO LOGADO — carrega via /api/me
+        ─────────────────────────────────────── */
+        fetch('/api/me')
+            .then(r => r.ok ? r.json() : null)
+            .then(user => {
+                if (!user) return;
+                const nameEl  = document.getElementById('user-display-name');
+                const roleEl  = document.getElementById('user-display-role');
+                const initEl  = document.getElementById('user-avatar-initials');
+
+                if (nameEl) nameEl.textContent = user.nome || user.username;
+                if (roleEl) roleEl.textContent = user.role === 'admin' ? 'Administrador' : 'Operador';
+                if (initEl) {
+                    const parts = (user.nome || user.username || '?').split(' ');
+                    initEl.textContent = parts.length >= 2
+                        ? parts[0][0].toUpperCase() + parts[parts.length - 1][0].toUpperCase()
+                        : (user.username || '?')[0].toUpperCase();
+                }
+                // Mostra link de usuários só para admin
+                if (user.role === 'admin') {
+                    const adminLinks = document.querySelectorAll('.admin-only');
+                    adminLinks.forEach(el => el.style.display = '');
+                }
+            })
+            .catch(() => {});
+
+        /* ───────────────────────────────────────
+           5. PAINEL DE ACESSIBILIDADE
+        ─────────────────────────────────────── */
+        const btnA11y  = document.getElementById('btn-a11y');
+        const panelA11y = document.getElementById('painel-acessibilidade');
+
+        btnA11y.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = panelA11y.classList.toggle('visible');
+            btnA11y.setAttribute('aria-expanded', isVisible);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!panelA11y.contains(e.target) && e.target !== btnA11y) {
+                panelA11y.classList.remove('visible');
+                btnA11y.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Alto Contraste
+        const toggleContrast = document.getElementById('toggle-contrast');
+        if (localStorage.getItem('highContrast') === '1') {
+            html.setAttribute('data-contrast', 'high');
+            if (toggleContrast) toggleContrast.checked = true;
+        }
+        if (toggleContrast) {
+            toggleContrast.addEventListener('change', () => {
+                if (toggleContrast.checked) {
+                    html.setAttribute('data-contrast', 'high');
+                    localStorage.setItem('highContrast', '1');
+                } else {
+                    html.removeAttribute('data-contrast');
+                    localStorage.removeItem('highContrast');
+                }
+            });
+        }
+
+        // Fonte Grande
+        const toggleFont = document.getElementById('toggle-fontsize');
+        const savedFont  = localStorage.getItem('fontSize');
+        if (savedFont) {
+            html.setAttribute('data-fontsize', savedFont);
+            if (toggleFont) toggleFont.checked = true;
+        }
+        if (toggleFont) {
+            toggleFont.addEventListener('change', () => {
+                if (toggleFont.checked) {
+                    html.setAttribute('data-fontsize', 'large');
+                    localStorage.setItem('fontSize', 'large');
+                } else {
+                    html.removeAttribute('data-fontsize');
+                    localStorage.removeItem('fontSize');
+                }
+            });
+        }
+
+        /* ───────────────────────────────────────
+           6. BOTÃO LIBRAS — fecha o painel ao clicar
+        ─────────────────────────────────────── */
+        const btnVLibras = document.getElementById('btn-abrir-vlibras');
+        if (btnVLibras) {
+            btnVLibras.addEventListener('click', () => {
+                // Fecha o painel de acessibilidade
+                panelA11y.classList.remove('visible');
+                btnA11y.setAttribute('aria-expanded', 'false');
+
+                // Aciona o botão flutuante do VLibras que o plugin injeta no DOM
+                function ativarVLibras(n) {
+                    const vwBtn = document.querySelector('[vw-access-button]');
+                    if (vwBtn) {
+                        vwBtn.click();
+                    } else if (n > 0) {
+                        setTimeout(() => ativarVLibras(n - 1), 300);
+                    }
+                }
+                ativarVLibras(15);
+            });
+        }
+
+    })();
+
+    /* ───────────────────────────────────────
+       6. FUNÇÃO GLOBAL: TOAST
+    ─────────────────────────────────────── */
+    function showToast(mensagem, tipo = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${tipo}`;
+        toast.setAttribute('role', 'alert');
+        const icones = { success: '✅', error: '❌', info: 'ℹ️' };
+        toast.innerHTML = `<span aria-hidden="true">${icones[tipo] || '✅'}</span> ${mensagem}`;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+    }
+    </script>
+
+    <!-- CSS do overlay mobile (injetado inline para garantir carregamento) -->
+    <style>
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9990;
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s ease;
+        }
+        #sidebar-overlay.active {
+            display: block;
+        }
+    </style>
+
+    {% block scripts %}{% endblock %}
+
+    <!-- ═══════════════════════════════════════════════
+         VLibras — Implementação oficial (gov.br)
+         https://vlibras.gov.br/doc/widget/installation/
+    ════════════════════════════════════════════════ -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
         <div vw-plugin-wrapper>
@@ -114,130 +439,8 @@
     </div>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        // Inicialização robusta do VLibras
-        (function() {
-            function initVLibras() {
-                if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-                    new window.VLibras.Widget('https://vlibras.gov.br/app');
-                } else {
-                    // Tenta novamente em 500ms se o script ainda não carregou
-                    setTimeout(initVLibras, 500);
-                }
-            }
-            if (document.readyState === 'complete') {
-                initVLibras();
-            } else {
-                window.addEventListener('load', initVLibras);
-            }
-        })();
-    </script>
-    <style>
-        /* Força a visibilidade do botão do VLibras acima de tudo */
-        [vw] {
-            z-index: 999999 !important;
-            display: block !important;
-        }
-        [vw].enabled {
-            position: fixed !important;
-        }
-    </style>
-
-    <script>
-        // ─── Tema Light/Dark ───
-        function toggleTheme() {
-            const html = document.documentElement;
-            const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-        if(localStorage.getItem('theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-
-        // ─── Sidebar Toggle (Desktop + Mobile) ───
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            if (window.innerWidth <= 768) {
-                sb.classList.toggle('mobile-open');
-            } else {
-                sb.classList.toggle('collapsed');
-            }
-        }
-        // Fecha sidebar mobile ao clicar fora
-        document.addEventListener('click', function(e) {
-            const sb = document.getElementById('sidebar');
-            if (window.innerWidth <= 768 && sb.classList.contains('mobile-open')) {
-                if (!sb.contains(e.target) && !e.target.closest('.icon-btn')) {
-                    sb.classList.remove('mobile-open');
-                }
-            }
-        });
-
-        // ─── Painel de Acessibilidade ───
-        function toggleA11yPanel() {
-            document.getElementById('a11y-panel').classList.toggle('visible');
-        }
-        function toggleContrast() {
-            const html = document.documentElement;
-            const current = html.getAttribute('data-contrast');
-            html.setAttribute('data-contrast', current === 'high' ? 'normal' : 'high');
-            localStorage.setItem('contrast', html.getAttribute('data-contrast'));
-        }
-        function cycleFontSize() {
-            const html = document.documentElement;
-            const current = html.getAttribute('data-fontsize');
-            if (current === 'normal') html.setAttribute('data-fontsize', 'large');
-            else if (current === 'large') html.setAttribute('data-fontsize', 'xlarge');
-            else html.setAttribute('data-fontsize', 'normal');
-            localStorage.setItem('fontsize', html.getAttribute('data-fontsize'));
-        }
-        function toggleReducedMotion() {
-            document.body.classList.toggle('reduce-motion');
-        }
-
-        // Restaurar preferências
-        if(localStorage.getItem('contrast') === 'high') {
-            document.documentElement.setAttribute('data-contrast', 'high');
-            const cb = document.getElementById('toggle-contrast');
-            if(cb) cb.checked = true;
-        }
-        if(localStorage.getItem('fontsize')) {
-            document.documentElement.setAttribute('data-fontsize', localStorage.getItem('fontsize'));
-        }
-
-        // ─── Toast Notifications ───
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.setAttribute('role', 'status');
-            const icon = type === 'success' ? '✅' : '⚠️';
-            toast.innerHTML = `<span aria-hidden="true">${icon}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 4500);
-        }
-
-        window.alert = function(msg) {
-            const type = msg.toLowerCase().includes('erro') || msg.toLowerCase().includes('bloqueio') ? 'error' : 'success';
-            showToast(msg, type);
-        };
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
     </script>
 
-    <!-- VanillaTilt 3D (sutil) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            VanillaTilt.init(document.querySelectorAll(".pro-card, .kpi-pro-card, .chart-pro-card, .card"), {
-                max: 2.5,
-                speed: 400,
-                glare: true,
-                "max-glare": 0.06,
-                scale: 1.005
-            });
-        });
-    </script>
-
-    {% block scripts %}{% endblock %}
 </body>
 </html>

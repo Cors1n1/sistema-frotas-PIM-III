@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light" data-contrast="normal" data-fontsize="normal">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Login seguro — Sistema de Gestão de Frotas PIM III UNIP ADS.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#1e3a8a">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
-    <title>Login — Gestão de Frotas</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚚</text></svg>">
+    <title>Login — UniLog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <style>
         /* ═══ RESET E BASE ═══ */
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
             --primary-blue: #1e3a8a;
@@ -58,6 +67,7 @@
             --light-bg: #fff;
             --white: #fff;
         }
+
         [data-theme="dark"][data-contrast="high"] {
             --primary-blue: #6db3f8;
             --text-main: #fff;
@@ -67,9 +77,18 @@
             --white: #111;
         }
 
-        html { scroll-behavior: smooth; font-size: 16px; }
-        [data-fontsize="large"]  { font-size: 18px !important; }
-        [data-fontsize="xlarge"] { font-size: 20px !important; }
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        [data-fontsize="large"] {
+            font-size: 18px !important;
+        }
+
+        [data-fontsize="xlarge"] {
+            font-size: 20px !important;
+        }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -92,6 +111,7 @@
             background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 35%, #082f49 65%, #0f172a 100%);
             z-index: 0;
         }
+
         [data-theme="light"] body::before {
             background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 35%, #f0fdf4 65%, #f8fafc 100%);
         }
@@ -105,18 +125,57 @@
             z-index: 0;
             animation: blobFloat 12s ease-in-out infinite alternate;
         }
-        .bg-blob-1 { width: 500px; height: 500px; background: #3b82f6; top: -150px; left: -150px; animation-delay: 0s; }
-        .bg-blob-2 { width: 400px; height: 400px; background: #facc15; bottom: -100px; right: -100px; animation-delay: -4s; }
-        .bg-blob-3 { width: 300px; height: 300px; background: #10b981; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -8s; }
+
+        .bg-blob-1 {
+            width: 500px;
+            height: 500px;
+            background: #3b82f6;
+            top: -150px;
+            left: -150px;
+            animation-delay: 0s;
+        }
+
+        .bg-blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #facc15;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -4s;
+        }
+
+        .bg-blob-3 {
+            width: 300px;
+            height: 300px;
+            background: #10b981;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -8s;
+        }
 
         @keyframes blobFloat {
-            from { transform: scale(1) translate(0, 0); }
-            to   { transform: scale(1.15) translate(30px, -20px); }
+            from {
+                transform: scale(1) translate(0, 0);
+            }
+
+            to {
+                transform: scale(1.15) translate(30px, -20px);
+            }
         }
-        .bg-blob-3 { animation: blobFloat3 14s ease-in-out infinite alternate; }
+
+        .bg-blob-3 {
+            animation: blobFloat3 14s ease-in-out infinite alternate;
+        }
+
         @keyframes blobFloat3 {
-            from { transform: translate(-50%, -50%) scale(1); }
-            to   { transform: translate(-50%, -50%) scale(1.2); }
+            from {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
         }
 
         /* ═══ CONTAINER PRINCIPAL ═══ */
@@ -130,8 +189,15 @@
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ═══ CARD DE LOGIN ═══ */
@@ -142,7 +208,7 @@
             padding: 40px 36px;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 24px 80px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08);
         }
 
         /* ─── Cabeçalho ─── */
@@ -164,9 +230,17 @@
             box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
             animation: logoPulse 3s ease-in-out infinite;
         }
+
         @keyframes logoPulse {
-            0%, 100% { box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35); }
-            50%       { box-shadow: 0 8px 32px rgba(245, 158, 11, 0.55); }
+
+            0%,
+            100% {
+                box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 8px 32px rgba(245, 158, 11, 0.55);
+            }
         }
 
         .login-header h1 {
@@ -201,6 +275,7 @@
             color: var(--danger);
             animation: fadeInUp 0.3s forwards;
         }
+
         .flash-msg[data-type="success"] {
             background: rgba(16, 185, 129, 0.08);
             border-color: rgba(16, 185, 129, 0.3);
@@ -255,7 +330,10 @@
             box-shadow: 0 0 0 4px var(--primary-blue-glow);
         }
 
-        .form-control::placeholder { color: var(--text-muted); opacity: 0.7; }
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
 
         /* Toggle de visibilidade da senha */
         .toggle-senha {
@@ -272,8 +350,14 @@
             transition: color var(--transition-fast);
             border-radius: 4px;
         }
-        .toggle-senha:hover { color: var(--primary-blue); }
-        .toggle-senha:focus-visible { outline: 2px solid var(--primary-blue); }
+
+        .toggle-senha:hover {
+            color: var(--primary-blue);
+        }
+
+        .toggle-senha:focus-visible {
+            outline: 2px solid var(--primary-blue);
+        }
 
         /* ─── Botão submit ─── */
         .btn-login {
@@ -301,7 +385,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(rgba(255,255,255,0.1), transparent);
+            background: linear-gradient(rgba(255, 255, 255, 0.1), transparent);
             opacity: 0;
             transition: opacity var(--transition-fast);
         }
@@ -311,8 +395,14 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 24px var(--primary-blue-glow);
         }
-        .btn-login:hover:not(:disabled)::after { opacity: 1; }
-        .btn-login:active:not(:disabled) { transform: translateY(0); }
+
+        .btn-login:hover:not(:disabled)::after {
+            opacity: 1;
+        }
+
+        .btn-login:active:not(:disabled) {
+            transform: translateY(0);
+        }
 
         .btn-login:disabled {
             opacity: 0.7;
@@ -323,12 +413,17 @@
             display: none;
             width: 18px;
             height: 18px;
-            border: 2.5px solid rgba(255,255,255,0.4);
+            border: 2.5px solid rgba(255, 255, 255, 0.4);
             border-top-color: #fff;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* ─── Rodapé do card ─── */
         .login-footer {
@@ -371,13 +466,28 @@
             backdrop-filter: blur(12px);
             transition: all var(--transition-fast);
         }
-        .tool-btn:hover { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
-        .tool-btn:focus-visible { outline: 3px solid var(--primary-blue); outline-offset: 2px; }
+
+        .tool-btn:hover {
+            background: var(--primary-blue);
+            color: #fff;
+            border-color: var(--primary-blue);
+        }
+
+        .tool-btn:focus-visible {
+            outline: 3px solid var(--primary-blue);
+            outline-offset: 2px;
+        }
 
         /* ─── Responsividade ─── */
         @media (max-width: 480px) {
-            .login-card { padding: 28px 20px; border-radius: var(--radius-lg); }
-            .login-wrapper { padding: 16px; }
+            .login-card {
+                padding: 28px 20px;
+                border-radius: var(--radius-lg);
+            }
+
+            .login-wrapper {
+                padding: 16px;
+            }
         }
 
         /* ─── Acessibilidade ─── */
@@ -386,8 +496,12 @@
             outline-offset: 2px;
             border-radius: 4px;
         }
+
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
+
+            *,
+            *::before,
+            *::after {
                 animation-duration: 0.01ms !important;
                 transition-duration: 0.01ms !important;
             }
@@ -395,15 +509,25 @@
 
         /* ─── Skip link ─── */
         .skip-link {
-            position: absolute; top: -100%; left: 16px;
-            background: var(--primary-blue); color: #fff;
-            padding: 12px 24px; border-radius: 8px;
-            z-index: 10000; font-weight: 700; text-decoration: none;
+            position: absolute;
+            top: -100%;
+            left: 16px;
+            background: var(--primary-blue);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-weight: 700;
+            text-decoration: none;
             transition: top 0.3s;
         }
-        .skip-link:focus { top: 16px; }
+
+        .skip-link:focus {
+            top: 16px;
+        }
     </style>
 </head>
+
 <body>
     <a href="#login-form" class="skip-link">Pular para o formulário de login</a>
 
@@ -414,49 +538,43 @@
 
     <!-- Botões de utilidade -->
     <div class="toolbar" role="toolbar" aria-label="Preferências de visualização">
-        <button class="tool-btn" onclick="toggleTheme()" id="btn-theme" aria-label="Alternar tema claro/escuro" title="Alternar Tema">🌙</button>
-        <button class="tool-btn" onclick="toggleContrast()" id="btn-contrast" aria-label="Ativar alto contraste" title="Alto Contraste">◐</button>
+        <button class="tool-btn" onclick="toggleTheme()" id="btn-theme" aria-label="Alternar tema claro/escuro"
+            title="Alternar Tema">🌙</button>
+        <button class="tool-btn" onclick="toggleContrast()" id="btn-contrast" aria-label="Ativar alto contraste"
+            title="Alto Contraste">◐</button>
     </div>
 
     <div class="login-wrapper" role="main">
         <div class="login-card">
             <!-- Cabeçalho -->
             <div class="login-header">
-                <div class="login-logo" role="img" aria-label="Logo Gestão de Frotas">🚚</div>
-                <h1>Gestão de Frotas</h1>
-                <p>PIM III — UNIP ADS · TransLog Soluções</p>
+                <img src="imagens/logo.jpg" alt="Logo UniLog"
+                    style="width: 80px; height: 80px; border-radius: 20px; object-fit: cover; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: logoPulse 3s ease-in-out infinite;">
+                <h1>UniLog</h1>
+                <p>PIM III — UNIP ADS · Soluções Logísticas</p>
             </div>
 
             <!-- Mensagens flash do servidor -->
             {% with messages = get_flashed_messages(with_categories=True) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash-msg" data-type="{{ category }}" role="alert" aria-live="assertive">
-                            <span aria-hidden="true">{{ '⚠️' if category == 'error' else 'ℹ️' }}</span>
-                            <span>{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-msg" data-type="{{ category }}" role="alert" aria-live="assertive">
+                <span aria-hidden="true">{{ '⚠️' if category == 'error' else 'ℹ️' }}</span>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
             <!-- Formulário de login -->
             <form id="login-form" method="POST" action="/login" novalidate aria-label="Formulário de login">
                 <div class="form-group">
-                    <label for="username">Usuário</label>
+                    <label for="username">E-mail ou Usuário</label>
                     <div class="input-wrapper">
                         <span class="input-icon" aria-hidden="true">👤</span>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            class="form-control"
-                            placeholder="Digite seu usuário"
-                            autocomplete="username"
-                            autocapitalize="none"
-                            spellcheck="false"
-                            required
-                            aria-required="true"
-                        >
+                        <input type="text" id="username" name="username" class="form-control"
+                            placeholder="Ex.: joao.silva ou joao@unilog.com.br" autocomplete="username" autocapitalize="none"
+                            spellcheck="false" required aria-required="true">
                     </div>
                 </div>
 
@@ -464,23 +582,14 @@
                     <label for="senha">Senha</label>
                     <div class="input-wrapper">
                         <span class="input-icon" aria-hidden="true">🔒</span>
-                        <input
-                            type="password"
-                            id="senha"
-                            name="senha"
-                            class="form-control"
-                            placeholder="Digite sua senha"
-                            autocomplete="current-password"
-                            required
-                            aria-required="true"
-                        >
-                        <button
-                            type="button"
-                            class="toggle-senha"
-                            id="toggle-senha-btn"
-                            aria-label="Mostrar ou ocultar senha"
-                            title="Mostrar/ocultar senha"
-                        >👁️</button>
+                        <input type="password" id="senha" name="senha" class="form-control"
+                            placeholder="Digite sua senha" autocomplete="current-password" required
+                            aria-required="true">
+                        <button type="button" class="toggle-senha" id="toggle-senha-btn"
+                            aria-label="Mostrar ou ocultar senha" title="Mostrar/ocultar senha">👁️</button>
+                    </div>
+                    <div style="text-align: right; margin-top: 8px;">
+                        <a href="#" id="link-esqueci-senha" style="font-size: 0.8rem; color: var(--primary-blue); font-weight: 600; text-decoration: none;">Esqueci minha senha</a>
                     </div>
                 </div>
 
@@ -492,35 +601,95 @@
 
             <!-- Rodapé informativo -->
             <div class="login-footer">
-                <strong>TransLog Soluções</strong>
-                Sistema Integrado v2.1 · Acesso restrito a usuários autorizados
+                <strong>UniLog Soluções Logísticas</strong>
+                Sistema Integrado · Acesso restrito a usuários autorizados<br>
+                <a href="https://br.linkedin.com/in/victor-corsini" target="_blank" rel="noopener" style="display:inline-block; margin-top: 10px; font-size: 0.75rem; color: var(--primary-blue); font-weight: 700; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">👨‍💻 Desenvolvido por Corsini</a>
             </div>
+        </div>
+
+        <!-- Painel Esqueci a Senha -->
+        <div class="login-card" id="card-esqueci-senha" style="display: none;">
+            <div class="login-header">
+                <h2>Recuperar Senha</h2>
+                <p>Informe seu e-mail para receber um link de redefinição seguro.</p>
+            </div>
+            
+            <form id="forgot-form" novalidate>
+                <div class="form-group">
+                    <label for="email-recover">E-mail</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📧</span>
+                        <input type="email" id="email-recover" class="form-control" placeholder="Digite seu e-mail" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login" id="btn-forgot">
+                    <span class="spinner" id="spinner-forgot" aria-hidden="true"></span>
+                    <span id="btn-forgot-text">Enviar Link</span>
+                </button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" id="link-voltar-login" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-decoration: none;">Voltar para o Login</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Painel Redefinir Senha -->
+        <div class="login-card" id="card-redefinir-senha" style="display: none;">
+            <div class="login-header">
+                <h2>Redefinir Senha</h2>
+                <p>Crie uma nova senha segura para sua conta.</p>
+            </div>
+            
+            <form id="reset-form" novalidate>
+                <input type="hidden" id="reset-token">
+                <div class="form-group">
+                    <label for="nova-senha">Nova Senha</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="nova-senha" class="form-control" placeholder="Mínimo de 6 caracteres" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmar-senha">Confirmar Senha</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="confirmar-senha" class="form-control" placeholder="Repita a senha" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login" id="btn-reset">
+                    <span class="spinner" id="spinner-reset" aria-hidden="true"></span>
+                    <span id="btn-reset-text">Salvar Nova Senha</span>
+                </button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" id="link-cancelar-reset" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-decoration: none;">Cancelar</a>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- VLibras -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
-        <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
     </div>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        (function() {
+        (function () {
+            var _vlibrasInit = false;
             function initVLibras() {
+                if (_vlibrasInit) return;
                 if (window.VLibras && typeof window.VLibras.Widget === 'function') {
                     new window.VLibras.Widget('https://vlibras.gov.br/app');
+                    _vlibrasInit = true;
                 } else {
-                    setTimeout(initVLibras, 500);
+                    setTimeout(initVLibras, 400);
                 }
             }
             if (document.readyState === 'complete') initVLibras();
             else window.addEventListener('load', initVLibras);
         })();
     </script>
-    <style>
-        [vw] { z-index: 999999 !important; display: block !important; }
-        [vw].enabled { position: fixed !important; }
-    </style>
 
     <script>
         // ─── Tema ───
@@ -531,7 +700,7 @@
             localStorage.setItem('theme', newTheme);
             document.getElementById('btn-theme').textContent = newTheme === 'dark' ? '☀️' : '🌙';
         }
-        (function() {
+        (function () {
             const saved = localStorage.getItem('theme');
             if (saved === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -552,7 +721,7 @@
         }
 
         // ─── Toggle visibilidade da senha ───
-        document.getElementById('toggle-senha-btn').addEventListener('click', function() {
+        document.getElementById('toggle-senha-btn').addEventListener('click', function () {
             const senhaInput = document.getElementById('senha');
             const isPassword = senhaInput.type === 'password';
             senhaInput.type = isPassword ? 'text' : 'password';
@@ -561,7 +730,35 @@
         });
 
         // ─── Loading state no submit ───
-        document.getElementById('login-form').addEventListener('submit', function(e) {
+        function showFlashMessage(msg, type='info') {
+            // Pega o card que está visível no momento
+            const card = document.querySelector('.login-card[style*="display: block"]') || document.querySelector('.login-card');
+            
+            // Remove mensagens anteriores
+            const existing = card.querySelectorAll('.flash-msg');
+            existing.forEach(el => el.remove());
+
+            const div = document.createElement('div');
+            div.className = 'flash-msg';
+            div.setAttribute('data-type', type === 'error' ? 'error' : 'success');
+            
+            const icon = document.createElement('span');
+            icon.textContent = type === 'error' ? '⚠️' : '✅';
+            
+            const text = document.createElement('span');
+            text.textContent = msg;
+
+            div.appendChild(icon);
+            div.appendChild(text);
+
+            // Insere a mensagem abaixo do cabeçalho
+            const form = card.querySelector('form');
+            card.insertBefore(div, form);
+
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        document.getElementById('login-form').addEventListener('submit', function (e) {
             const btn = document.getElementById('btn-login');
             const spinner = document.getElementById('spinner');
             const btnText = document.getElementById('btn-text');
@@ -583,10 +780,124 @@
         });
 
         // ─── Auto-focar o campo de usuário ───
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', function () {
             const userField = document.getElementById('username');
             if (userField && !userField.value) userField.focus();
+
+            // Verificar se tem token de redefinição na URL
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            if (token) {
+                document.querySelector('.login-card').style.display = 'none'; // Esconde form login normal
+                document.getElementById('card-redefinir-senha').style.display = 'block';
+                document.getElementById('reset-token').value = token;
+                
+                // Remove o token da barra de endereço para segurança
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        // ─── Navegação entre Painéis ───
+        document.getElementById('link-esqueci-senha').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.login-card').style.display = 'none';
+            document.getElementById('card-esqueci-senha').style.display = 'block';
+        });
+
+        document.getElementById('link-voltar-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('card-esqueci-senha').style.display = 'none';
+            document.querySelector('.login-card').style.display = 'block';
+        });
+
+        document.getElementById('link-cancelar-reset').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('card-redefinir-senha').style.display = 'none';
+            document.querySelector('.login-card').style.display = 'block';
+        });
+
+        // ─── Funcionalidade: Forgot Password ───
+        document.getElementById('forgot-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email-recover').value.trim();
+            if (!email) return showFlashMessage('Por favor, informe um e-mail.', 'error');
+
+            const btn = document.getElementById('btn-forgot');
+            const spinner = document.getElementById('spinner-forgot');
+            const btnText = document.getElementById('btn-forgot-text');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Enviando...';
+
+            try {
+                const res = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showFlashMessage(data.mensagem, 'success');
+                    setTimeout(() => {
+                        document.getElementById('link-voltar-login').click();
+                    }, 2500);
+                } else {
+                    showFlashMessage(data.erro || data.mensagem, 'error');
+                }
+            } catch (err) {
+                showFlashMessage('Erro de comunicação com o servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Enviar Link';
+            }
+        });
+
+        // ─── Funcionalidade: Reset Password ───
+        document.getElementById('reset-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const senha = document.getElementById('nova-senha').value;
+            const confirmar = document.getElementById('confirmar-senha').value;
+            const token = document.getElementById('reset-token').value;
+
+            if (senha.length < 6) return showFlashMessage('A senha deve ter no mínimo 6 caracteres.', 'error');
+            if (senha !== confirmar) return showFlashMessage('As senhas não coincidem!', 'error');
+
+            const btn = document.getElementById('btn-reset');
+            const spinner = document.getElementById('spinner-reset');
+            const btnText = document.getElementById('btn-reset-text');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Salvando...';
+
+            try {
+                const res = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, senha })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showFlashMessage(data.mensagem, 'success');
+                    setTimeout(() => {
+                        document.getElementById('link-cancelar-reset').click();
+                    }, 2500);
+                } else {
+                    showFlashMessage(data.erro || data.mensagem, 'error');
+                }
+            } catch (err) {
+                showFlashMessage('Erro de comunicação com o servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Salvar Nova Senha';
+            }
         });
     </script>
 </body>
+
 </html>

@@ -1,7 +1,7 @@
 # 🚛 Sistema de Gestão de Frotas — PIM III (ADS)
 
 > **Projeto Integrado Multidisciplinar III** — Análise e Desenvolvimento de Sistemas · UNIP  
-> Sistema web completo com autenticação multi-usuário, Machine Learning e acessibilidade WCAG 2.1
+> Sistema web completo com autenticação multi-usuário, Machine Learning, recuperação de senha por e-mail e acessibilidade WCAG 2.1
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat&logo=flask&logoColor=white)
@@ -12,19 +12,21 @@
 
 ## 📌 Sobre o Projeto
 
-Sistema full-stack de gestão de frotas empresariais com controle de **veículos**, **motoristas**, **abastecimentos** e **manutenções**, módulo de **Inteligência Artificial** para predição de custos, simulador de **rotas GPS** e sistema de **login multi-usuário** com roles de acesso.
+Sistema full-stack de gestão de frotas empresariais com controle de **veículos**, **motoristas**, **abastecimentos** e **manutenções**, módulo de **Inteligência Artificial** para predição de custos, simulador de **rotas GPS**, sistema de **login multi-usuário** com roles de acesso e **recuperação de senha por e-mail**.
 
 ### ✨ Destaques
 
 | Feature | Descrição |
 |---------|-----------|
-| 🔐 **Autenticação Multi-Usuário** | Flask-Login + Bcrypt com roles `admin` e `operador` (Alta Resiliência VPS) |
+| 🔐 **Autenticação Multi-Usuário** | Flask-Login + Bcrypt com roles `admin` e `operador` |
+| 📧 **Recuperação de Senha** | Token seguro por e-mail (SMTP + itsdangerous, válido 30 min) |
 | 🤖 **Machine Learning** | Regressão Linear segmentada (Carros/Caminhões) com R² otimizado |
 | ♿ **Acessibilidade WCAG 2.1 AA** | Alto Contraste, VLibras (Libras), Ampliação de Fonte |
 | 🗺️ **Simulador de Rotas GPS** | Integração OSRM + Leaflet.js com fallback offline |
 | 📊 **Dashboard Interativo** | Chart.js com KPIs, rankings e Gestão de Riscos Premium UI |
 | 🌙 **Dark / Light Mode** | Tema adaptativo salvo no localStorage |
 | 🛡️ **Segurança** | Prepared Statements, senhas em hash bcrypt, `@login_required` em todas as rotas |
+| 🌱 **Seed de Apresentação** | Script que popula 22 veículos, 20 motoristas e +200 registros de histórico |
 
 ---
 
@@ -38,11 +40,13 @@ Sistema full-stack de gestão de frotas empresariais com controle de **veículos
 | Flask-Login | 0.6.x | Gerenciamento de sessões autenticadas |
 | Flask-Bcrypt | 1.0.x | Hash seguro de senhas (bcrypt) |
 | Flask-CORS | 5.x | Cross-Origin Resource Sharing |
+| itsdangerous | 2.x | Geração e validação de tokens de recuperação de senha |
 | PostgreSQL | 16+ | Banco de dados relacional |
 | psycopg2 | 2.x | Driver de conexão com PostgreSQL |
 | Scikit-Learn | 1.x | Machine Learning (Regressão Linear) |
 | Pandas | 2.x | Manipulação de dados |
 | python-dotenv | 1.x | Carregamento de variáveis de ambiente |
+| waitress | 3.x | Servidor WSGI de produção (alternativa ao Gunicorn no Windows) |
 
 ### Frontend
 | Tecnologia | Função |
@@ -61,6 +65,7 @@ Sistema full-stack de gestão de frotas empresariais com controle de **veículos
 | OSRM | Roteamento de veículos (GPS real) |
 | Nominatim | Geocodificação de endereços |
 | Parallelum FIPE | Consulta da tabela FIPE de veículos |
+| SMTP (Gmail/Outlook) | Envio de e-mail de recuperação de senha |
 
 ---
 
@@ -70,17 +75,18 @@ Sistema full-stack de gestão de frotas empresariais com controle de **veículos
 sistema_frotas/
 │
 ├── backend/                        # Camada do Servidor (Controller + Model)
-│   ├── app.py                      # Controlador principal (rotas REST + autenticação)
+│   ├── app.py                      # Controlador principal (rotas REST + autenticação + email)
 │   ├── models.py                   # Classes POO + classe Usuario (Flask-Login)
 │   ├── ml.py                       # Módulo de Machine Learning
 │   ├── database.py                 # Conexão com PostgreSQL
 │   ├── requirements.txt            # Dependências Python
 │   ├── criar_admin.py              # Script para criar o primeiro administrador
+│   ├── seed_apresentacao.py        # ⭐ Seed rico para demonstração (22 veíc., 20 mot., histórico 12 meses)
 │   └── .env                        # ⚠️ Credenciais (NÃO versionado — ver .gitignore)
 │
 ├── frontend/                       # Camada do Cliente (View)
 │   ├── base.html                   # Template base (sidebar, tema, acessibilidade, logout)
-│   ├── login.html                  # Página de autenticação (glassmorphism + dark mode)
+│   ├── login.html                  # Página de autenticação (glassmorphism + recuperação de senha)
 │   ├── usuarios.html               # Painel de gerenciamento de usuários (somente admin)
 │   ├── index.html                  # Veículos + Mapa de Telemetria
 │   ├── motoristas.html             # Gestão de Motoristas
@@ -88,6 +94,8 @@ sistema_frotas/
 │   ├── manutencoes.html            # Engenharia de Manutenção
 │   ├── dashboard.html              # Dashboard Executivo (KPIs + Gráficos)
 │   ├── analise.html                # Análise IA + Simulador de Rotas
+│   ├── imagens/
+│   │   └── logo.jpg                # Logo da empresa (UniLog)
 │   ├── css/
 │   │   └── style.css               # Design System completo
 │   └── js/
@@ -180,7 +188,7 @@ CREATE TABLE manutencoes (
     quilometragem   INTEGER       NOT NULL
 );
 
--- Tabela de usuários (autenticação)
+-- Tabela de usuários (autenticação + recuperação de senha)
 CREATE TABLE usuarios (
     id          SERIAL       PRIMARY KEY,
     nome        VARCHAR(150) NOT NULL,
@@ -188,6 +196,7 @@ CREATE TABLE usuarios (
     senha_hash  VARCHAR(255) NOT NULL,
     role        VARCHAR(20)  NOT NULL DEFAULT 'operador'
                              CHECK (role IN ('admin', 'operador')),
+    email       VARCHAR(255) UNIQUE,
     criado_em   TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_usuarios_username ON usuarios (username);
@@ -203,6 +212,12 @@ DB_NAME=pim_trab
 DB_USER=postgres
 DB_PASSWORD=sua_senha_aqui
 SECRET_KEY=gere_com_python_-c_"import_secrets;print(secrets.token_hex(32))"
+
+# Configurações de e-mail para recuperação de senha (opcional)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu_email@gmail.com
+SMTP_PASSWORD=sua_senha_de_app_gmail
 ```
 
 > ⚠️ **NUNCA** versione este arquivo. Ele já está no `.gitignore`.
@@ -218,15 +233,31 @@ python -c "import secrets; print(secrets.token_hex(32))"
 python criar_admin.py
 ```
 
-O script solicitará nome, username e senha interativamente. A senha é armazenada como hash bcrypt.
+O script solicitará nome, username, e-mail e senha interativamente. A senha é armazenada como hash bcrypt.
 
-### 6️⃣ Iniciar o servidor
+### 6️⃣ (Opcional) Popular o banco com dados de demonstração
 
+Para ter dados ricos prontos para apresentação (22 veículos, 20 motoristas, histórico de 12 meses):
+
+```bash
+python seed_apresentacao.py
+```
+
+Isso cria o usuário admin padrão: `corsini / Pulga@2013`
+
+### 7️⃣ Iniciar o servidor
+
+**Desenvolvimento:**
 ```bash
 python app.py
 ```
 
-### 7️⃣ Acessar no navegador
+**Produção (Windows) com Waitress:**
+```bash
+waitress-serve --port=8000 app:app
+```
+
+### 8️⃣ Acessar no navegador
 
 ```
 http://localhost:5000/login
@@ -253,6 +284,14 @@ Qualquer rota → @login_required → Redireciona para /login se não autenticad
 APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 ```
 
+### Recuperação de Senha por E-mail
+
+```
+Usuário → POST /api/auth/forgot-password (email) → Token gerado (itsdangerous)
+→ E-mail HTML enviado via SMTP com link → Token válido por 30 minutos
+→ POST /api/auth/reset-password (token + nova senha) → Hash atualizado no banco
+```
+
 ---
 
 ## 📊 Funcionalidades
@@ -272,7 +311,7 @@ APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 - Cálculo de **emissão de CO₂** (litros × 2,3 kg)
 
 ### 🔧 Manutenções
-- Registro de manutenções preventivas e corretivas
+- Registro de manutenções **Preventivas**, **Corretivas** e **Preditivas**
 - **Alertas automáticos** para veículos com +10.000 km sem revisão preventiva
 
 ### 📊 Dashboard
@@ -282,16 +321,20 @@ APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 - **Relatório de eficiência** (km/L, R$/km, CO₂ total)
 
 ### 🤖 Análise (IA) & Gestão de Riscos
-- **Regressão Linear Segmentada** (Scikit-Learn) separando predições para Carros e Caminhões.
-- Métricas de avaliação em tempo real: **R², MAE**, indicando a qualidade de confiança do modelo (ex: 'Excelente', 'Fraco').
-- Geração de dados orgânicos no seed simulando degradação real (tendência linear com ruído) para treinos matematicamente viáveis.
-- **Gestão de Riscos (UI Premium)**: Alertas visuais com badges de severidade, parser inteligente que exibe KM excedido e ações rápidas para resolução de riscos.
-- **Simulador de Rotas GPS** com OSRM + Leaflet.js (cálculo de distâncias, tempo estimado e contingência offline).
+- **Regressão Linear Segmentada** (Scikit-Learn) separando predições para Carros e Caminhões
+- Métricas de avaliação em tempo real: **R², MAE**, indicando a qualidade de confiança do modelo
+- **Gestão de Riscos (UI Premium)**: Alertas visuais com badges de severidade e ações rápidas
+- **Simulador de Rotas GPS** com OSRM + Leaflet.js (distâncias, tempo estimado e fallback offline)
 
 ### 👥 Usuários (Admin)
 - Painel exclusivo para administradores
-- Criar novos usuários com role `admin` ou `operador`
+- Criar novos usuários com campo de **e-mail** para recuperação de senha
 - Excluir usuários (não pode excluir a si mesmo)
+
+### 📧 Recuperação de Senha
+- Fluxo completo de reset por e-mail
+- Token seguro gerado com **itsdangerous** (expiração de 30 minutos)
+- E-mail HTML responsivo com branding da UniLog
 
 ---
 
@@ -305,9 +348,10 @@ APIs JSON → 401 Unauthorized (sem redirect) se não autenticado
 │ HTML/CSS/JS │                     │ Flask + Login    │             │ veiculos   │
 │ Chart.js    │                     │ @login_required  │             │ motoristas │
 │ Leaflet.js  │                     │ Validações POO   │             │ abastec.   │
-│ VLibras     │                     │                  │             │ manutencoes│
-└─────────────┘                     │    ml.py         │             │ usuarios   │
-                                    │  (ML Engine)     │             └────────────┘
+│ VLibras     │                     │ SMTP (reset pwd) │             │ manutencoes│
+└─────────────┘                     │                  │             │ usuarios   │
+                                    │    ml.py         │             └────────────┘
+                                    │  (ML Engine)     │
                                     └─────────────────┘
 ```
 

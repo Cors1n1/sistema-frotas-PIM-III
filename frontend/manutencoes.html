@@ -30,10 +30,11 @@
         }
 
         .header-section h1 {
-            font-size: 1.8rem;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
             font-weight: 800;
             color: var(--pro-header-text);
-            margin: 0;
+            margin: 0 0 6px;
+            word-break: break-word;
         }
 
         /* Cartões de Engenharia */
@@ -43,8 +44,10 @@
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
-            transition: background 0.3s ease;
+            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .title-group {
@@ -74,72 +77,103 @@
         /* Estilização do Formulário de Diagnóstico */
         .grid-form {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (min-width: 600px) {
+            .grid-form { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Segunda linha do formulário (custo + descrição + botão) */
+        .grid-form-bottom {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 640px) {
+            .grid-form-bottom { grid-template-columns: 1fr 2fr; }
         }
 
         .input-group-pro {
             display: flex;
             flex-direction: column;
             gap: 5px;
+            min-width: 0;
         }
 
         .input-group-pro label {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .input-pro {
             background: var(--input-bg);
             border: 1px solid var(--pro-border);
             color: var(--pro-text);
-            padding: 12px;
+            padding: 11px 14px;
             border-radius: 8px;
             font-size: 0.95rem;
-            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
         }
 
         .input-pro:focus {
             border-color: var(--primary-blue);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
         }
 
         .btn-maint {
             background: var(--primary-blue);
             color: white;
             font-weight: 700;
-            padding: 15px 30px;
+            padding: 13px 28px;
             border-radius: 8px;
             border: none;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
+            transition: transform 0.2s, background 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            white-space: nowrap;
         }
 
         .btn-maint:hover {
             background: #1e40af;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+        }
+
+        @media (min-width: 480px) {
+            .btn-maint { width: auto; }
+            .form-actions-right {
+                display: flex;
+                justify-content: flex-end;
+            }
         }
 
         /* Tabela Técnica */
         .table-container {
             overflow-x: auto;
-            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 10px;
             border: 1px solid var(--pro-border);
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { background: var(--primary-blue) !important; color: white !important; text-align: left; padding: 15px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 15px; border-bottom: 1px solid var(--pro-border); color: var(--pro-text); background: var(--pro-card-bg); font-size: 0.9rem; }
+        .table-container table { width: 100%; min-width: 580px; border-collapse: collapse; }
+        .table-container th { background: var(--primary-blue) !important; color: white !important; text-align: left; padding: 13px 15px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .table-container td { padding: 13px 15px; border-bottom: 1px solid var(--pro-border); color: var(--pro-text); background: var(--pro-card-bg); font-size: 0.88rem; vertical-align: middle; }
+        .table-container tr:last-child td { border-bottom: none; }
 
         /* Badges de Status de Manutenção */
         .status-pill {
@@ -150,23 +184,103 @@
             text-transform: uppercase;
         }
         .status-preventiva { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-        .status-corretiva { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-        
+        .status-corretiva  { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
         [data-theme="dark"] .status-preventiva { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
-        [data-theme="dark"] .status-corretiva { background: #7f1d1d; color: #fca5a5; border-color: #991b1b; }
+        [data-theme="dark"] .status-corretiva  { background: #7f1d1d; color: #fca5a5; border-color: #991b1b; }
+
+        /* ═══ CARDS MOBILE PARA O LOGBOOK ═══ */
+        .maint-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .maint-card {
+            background: var(--pro-card-bg);
+            border: 1px solid var(--pro-border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .maint-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .maint-card-left { flex: 1; min-width: 0; }
+
+        .maint-card-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--pro-text);
+        }
+
+        .maint-card-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .maint-card-toggle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.25s;
+            flex-shrink: 0;
+        }
+
+        .maint-card.open .maint-card-toggle { transform: rotate(180deg); }
+
+        .maint-card-body {
+            display: none;
+            padding: 0 16px 14px;
+            border-top: 1px solid var(--pro-border);
+        }
+
+        .maint-card.open .maint-card-body { display: block; }
+
+        .maint-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--pro-border);
+            gap: 8px;
+            font-size: 0.84rem;
+        }
+
+        .maint-detail-row:last-child { border-bottom: none; }
+        .maint-detail-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; min-width: 80px; padding-top: 2px; }
+        .maint-detail-val { color: var(--pro-text); font-weight: 600; flex: 1; text-align: right; }
+
+        /* Toggle responsivo: tabela desktop / cards mobile */
+        @media (max-width: 640px) {
+            .table-container { display: none; }
+            .maint-list { display: flex; }
+        }
+
+        @media (min-width: 641px) {
+            .maint-list { display: none; }
+            .table-container { display: block; }
+        }
     </style>
 {% endblock %}
 
 {% block content %}
     <div class="header-section">
-        <h1>ENGENHARIA & MANUTENÇÃO</h1>
-        <p style="color: var(--text-muted);">Controle rigoroso de revisões preventivas e correções mecânicas da frota.</p>
+        <h1>Oficina e Manutenções</h1>
+        <p style="color: var(--text-muted);">Acompanhe e registre os consertos e revisões dos veículos da frota.</p>
     </div>
 
     <section class="pro-card">
         <div class="title-group">
-            <span class="badge-icon">🔧</span>
-            <h2>Ordem de Serviço / Nova Intervenção Técnica</h2>
+            <span class="badge-icon">➕</span>
+            <h2>Registrar Nova Manutenção ou Serviço</h2>
         </div>
         
         <form id="form-manutencao">
@@ -193,23 +307,25 @@
                 </div>
 
                 <div class="input-group-pro">
-                    <label for="quilometragem_manut">Odómetro no Registo (Km)</label>
+                    <label for="quilometragem_manut">Odômetro no Registro (Km)</label>
                     <input type="number" id="quilometragem_manut" class="input-pro" placeholder="Ex: 45000" required>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; align-items: flex-end;">
+            <div class="grid-form-bottom">
                 <div class="input-group-pro">
                     <label for="custo">Investimento Técnico (R$)</label>
-                    <input type="number" step="0.01" id="custo" class="input-pro" placeholder="0.00" required>
+                    <input type="number" step="0.01" id="custo" class="input-pro" placeholder="0.00" required inputmode="decimal">
                 </div>
 
                 <div class="input-group-pro">
                     <label for="descricao">Descrição dos Serviços e Peças</label>
                     <input type="text" id="descricao" class="input-pro" placeholder="Ex: Substituição de filtros e lubrificantes" required>
                 </div>
+            </div>
 
-                <button type="submit" class="btn-maint">
+            <div class="form-actions-right">
+                <button type="submit" class="btn-maint" id="btn-registrar-os">
                     <span>⚙️</span> REGISTAR O.S.
                 </button>
             </div>
@@ -218,26 +334,43 @@
 
     <section class="pro-card">
         <div class="title-group">
-            <span class="badge-icon">📋</span>
-            <h2>Logbook / Histórico Geral de Intervenções</h2>
+            <span class="badge-icon">📜</span>
+            <h2>Histórico de Manutenções Realizadas</h2>
         </div>
-        
+
+        <div class="table-controls">
+            <div class="search-bar-container">
+                <input type="text" id="search-manutencoes" placeholder="Pesquisar por veículo, descrição, natureza...">
+            </div>
+        </div>
+
+        <!-- Desktop: tabela com scroll -->
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th width="100">Cód. Unidade</th>
-                        <th>Data</th>
-                        <th>Natureza</th>
-                        <th>KM Registo</th>
-                        <th>Descrição dos Serviços</th>
-                        <th>Custo Total</th>
+                        <th class="sortable" onclick="ordenarManutencoes('veiculo', this)">Cód. Unidade <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarManutencoes('data_manutencao', this)">Data <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarManutencoes('tipo', this)">Natureza <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarManutencoes('quilometragem', this)">KM Registro <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarManutencoes('descricao', this)">Descrição dos Serviços <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarManutencoes('custo', this)">Custo Total <span class="sort-icon">↕️</span></th>
                     </tr>
                 </thead>
-                <tbody id="lista-manutencoes">
-                    </tbody>
+                <tbody id="lista-manutencoes"></tbody>
             </table>
         </div>
+
+        <!-- Mobile: cards expandíveis -->
+        <div class="maint-list" id="maint-list-mobile" aria-label="Histórico de manutenções" role="list">
+            <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                <div style="font-size:3rem; margin-bottom:10px;">💭</div>
+                Nenhuma manutenção registrada ainda.
+            </div>
+        </div>
+
+        <!-- Paginação -->
+        <div class="pagination" id="pagination-manutencoes"></div>
     </section>
 {% endblock %}
 

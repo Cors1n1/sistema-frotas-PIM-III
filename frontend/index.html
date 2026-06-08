@@ -33,10 +33,11 @@
         }
 
         .header-section h1 {
-            font-size: 1.8rem;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
             font-weight: 800;
             color: var(--pro-header-text);
-            margin: 0;
+            margin: 0 0 4px;
+            word-break: break-word;
         }
 
         /* Cartões de Operação */
@@ -46,8 +47,9 @@
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 25px;
-            transition: background 0.3s ease;
+            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .title-group {
@@ -87,15 +89,22 @@
         /* Formulário de Cadastro */
         .grid-form {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (min-width: 560px) {
+            .grid-form { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 900px) {
+            .grid-form { grid-template-columns: repeat(3, 1fr); }
         }
 
         .input-group-pro {
             display: flex;
             flex-direction: column;
             gap: 5px;
+            min-width: 0;
         }
 
         .input-group-pro label {
@@ -109,10 +118,13 @@
             background: var(--input-bg);
             border: 1px solid var(--pro-border);
             color: var(--pro-text);
-            padding: 12px;
+            padding: 11px 14px;
             border-radius: 8px;
             font-size: 0.95rem;
-            transition: border-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            font-family: inherit;
         }
 
         .input-pro:focus {
@@ -138,14 +150,19 @@
             background: var(--primary-blue);
             color: white;
             font-weight: 700;
-            padding: 15px 30px;
+            padding: 13px 28px;
             border-radius: 8px;
             border: none;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
+            transition: transform 0.2s, background 0.2s;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
+            white-space: nowrap;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%; /* Mobile: largura total */
         }
 
         .btn-register:hover {
@@ -153,31 +170,62 @@
             transform: translateY(-2px);
         }
 
+        @media (min-width: 480px) {
+            .btn-register { width: auto; }
+            .form-btn-row {
+                display: flex;
+                justify-content: flex-end;
+            }
+        }
+
         /* Tabela de Frota Ativa */
         .table-container {
             overflow-x: auto;
-            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 10px;
             border: 1px solid var(--pro-border);
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { background: var(--primary-blue) !important; color: white !important; text-align: left; padding: 15px; font-size: 0.75rem; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid var(--pro-border); color: var(--pro-text); background: var(--pro-card-bg); }
+        .table-container table { width: 100%; min-width: 540px; border-collapse: collapse; }
+        .table-container th { background: var(--primary-blue) !important; color: white !important; text-align: left; padding: 13px 15px; font-size: 0.75rem; text-transform: uppercase; white-space: nowrap; }
+        .table-container td { padding: 13px 15px; border-bottom: 1px solid var(--pro-border); color: var(--pro-text); background: var(--pro-card-bg); }
+        .table-container tr:last-child td { border-bottom: none; }
 
         .car-table-img { width: 35px; border-radius: 6px; }
+
+        /* ── Cards Mobile Expandíveis ── */
+        #vehicles-list-mobile { display: none; }
+        .vehicle-card { background: var(--input-bg); border: 1px solid var(--pro-border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .vehicle-card-header { padding: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .vehicle-card-left { display: flex; align-items: center; gap: 12px; }
+        .vehicle-card-title { font-weight: 800; color: var(--pro-text); font-size: 0.95rem; }
+        .vehicle-card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .vehicle-card-toggle { font-size: 0.8rem; color: var(--text-muted); transition: transform 0.3s; }
+        .vehicle-card.open .vehicle-card-toggle { transform: rotate(180deg); }
+        .vehicle-card-body { padding: 0 14px; max-height: 0; overflow: hidden; transition: all 0.3s ease; background: rgba(0,0,0,0.02); }
+        [data-theme="dark"] .vehicle-card-body { background: rgba(255,255,255,0.02); }
+        .vehicle-card.open .vehicle-card-body { padding: 14px; max-height: 500px; border-top: 1px solid var(--pro-border); }
+        .vehicle-detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; }
+        .vehicle-detail-row:last-child { margin-bottom: 0; }
+        .vehicle-detail-label { color: var(--text-muted); font-weight: 700; }
+        .vehicle-detail-val { color: var(--pro-text); font-weight: 600; text-align: right; }
+
+        @media (max-width: 640px) {
+            .table-container { display: none; }
+            #vehicles-list-mobile { display: block; }
+        }
     </style>
 {% endblock %}
 
 {% block content %}
     <div class="header-section">
-        <h1>CONTROLE DE ATIVOS & FROTA</h1>
-        <p style="color: var(--text-muted);">Monitorização georreferenciada e gestão técnica de unidades de transporte.</p>
+        <h1>Gestão da Frota</h1>
+        <p style="color: var(--text-muted);">Acompanhe todos os veículos da empresa em um só lugar.</p>
     </div>
 
     <section class="pro-card">
         <div class="title-group">
-            <span class="badge-icon">🛰️</span>
-            <h2>Centro de Comando / Telemetria Ativa</h2>
+            <h2>Mapa de Localização (Tempo Real)</h2>
         </div>
         <div id="mapa-sede"></div>
     </section>
@@ -216,23 +264,26 @@
                 </div>
 
                 <div class="input-group-pro">
-                    <label>Ano de Fabrico</label>
+                    <label>Ano de Fabricação</label>
                     <input list="anos-list" id="ano" class="input-pro" placeholder="Selecione..." required disabled>
                     <datalist id="anos-list"></datalist>
                 </div>
             </div>
 
-            <div style="display: flex; align-items: flex-end; gap: 20px;">
-                <div class="input-group-pro" id="container-eixos" style="width: 150px; display:none;">
+            <!-- Segunda linha: eixos, km, botão -->
+            <div style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="input-group-pro" id="container-eixos" style="display:none;">
                     <label>Configuração de Eixos</label>
                     <input type="number" id="eixos" class="input-pro" placeholder="2" min="2" max="12">
                 </div>
 
-                <div class="input-group-pro" style="flex-grow: 1;">
-                    <label>Leitura Atual do Odómetro (Km)</label>
+                <div class="input-group-pro">
+                    <label>Leitura Atual do Odômetro (Km)</label>
                     <input type="number" id="quilometragem" class="input-pro" placeholder="0" required>
                 </div>
+            </div>
 
+            <div class="form-btn-row" style="margin-top: 16px;">
                 <button type="submit" class="btn-register">
                     <span>💾</span> EFETIVAR CADASTRO
                 </button>
@@ -251,25 +302,37 @@
     <section class="pro-card">
         <div class="title-group">
             <span class="badge-icon">📋</span>
-            <h2>Frota Ativa / Registo Consolidado</h2>
+            <h2>Veículos Cadastrados na Frota</h2>
+        </div>
+        
+        <div class="table-controls">
+            <div class="search-bar-container">
+                <input type="text" id="search-veiculos" placeholder="Pesquisar placa, modelo, marca...">
+            </div>
         </div>
         
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th width="80">Marca</th>
-                        <th>Categoria</th>
-                        <th>Placa</th>
-                        <th>Modelo / Versão</th>
-                        <th>Ano / Config.</th>
-                        <th>Portagem Est.</th>
+                        <th width="80" class="sortable" onclick="ordenarVeiculos('marca', this)">Marca <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('tipo', this)">Categoria <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('placa', this)">Placa <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('modelo', this)">Modelo / Versão <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('ano', this)">Ano / Config. <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('quilometragem', this)">Odômetro <span class="sort-icon">↕️</span></th>
+                        <th class="sortable" onclick="ordenarVeiculos('pedagio', this)">Portagem Est. <span class="sort-icon">↕️</span></th>
                     </tr>
                 </thead>
                 <tbody id="lista-veiculos">
                     </tbody>
             </table>
         </div>
+
+        <div class="cards-container" id="vehicles-list-mobile"></div>
+
+        <!-- Paginação -->
+        <div class="pagination" id="pagination-veiculos"></div>
     </section>
 {% endblock %}
 

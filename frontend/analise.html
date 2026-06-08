@@ -5,566 +5,1117 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
-    /* ═══ ANÁLISE IA — DESIGN PREMIUM ═══ */
-    :root {
-        --pro-card-bg: var(--white);
-        --pro-text: var(--text-main);
-        --pro-border: var(--border-color);
-        --pro-header-text: var(--primary-blue);
-        --input-bg: #ffffff;
-        --ia-bg: linear-gradient(135deg, rgba(30, 58, 138, 0.03), rgba(250, 204, 21, 0.03));
-    }
+/* ═══════════════════════════════════════════════════════════
+   ANÁLISE IA — DESIGN PREMIUM 2.0
+   Glassmorphism · Gradientes · Responsivo · Dark-mode nativo
+═══════════════════════════════════════════════════════════ */
 
-    [data-theme="dark"] {
-        --pro-card-bg: rgba(30, 41, 59, 0.7);
-        --pro-text: #f8fafc;
-        --pro-border: #334155;
-        --pro-header-text: var(--secondary-yellow);
-        --input-bg: #0f172a;
-        --ia-bg: linear-graanalise.htmlent(135deg, rgba(59, 130, 246, 0.08), rgba(253, 224, 71, 0.03));
-    }
+/* ── Variáveis locais ── */
+:root {
+    --ia-bg:       #ffffff;
+    --ia-text:     var(--text-main);
+    --ia-border:   var(--border-color);
+    --ia-header:   var(--primary-blue);
+    --ia-input:    #f8fafc;
+    --ia-muted:    var(--text-muted);
+    --glass-bg:    rgba(255,255,255,0.72);
+    --glass-border:rgba(30,58,138,0.12);
+    /* Compatíveis com dashboard.js */
+    --pro-card-bg: #ffffff;
+    --pro-text:    var(--text-main);
+    --pro-border:  var(--border-color);
+    --pro-header-text: var(--primary-blue);
+    --input-bg:    #f8fafc;
+}
+[data-theme="dark"] {
+    --ia-bg:       #0f172a;
+    --ia-text:     #f1f5f9;
+    --ia-border:   #1e293b;
+    --ia-header:   #facc15;
+    --ia-input:    #1e293b;
+    --ia-muted:    #64748b;
+    --glass-bg:    rgba(15,23,42,0.82);
+    --glass-border:rgba(250,204,21,0.12);
+    /* Compatíveis com dashboard.js */
+    --pro-card-bg: #1e293b;
+    --pro-text:    #f1f5f9;
+    --pro-border:  #334155;
+    --pro-header-text: #facc15;
+    --input-bg:    #0f172a;
+}
 
-    /* Header */
-    .header-section {
-        padding: 28px 0;
-        margin-bottom: 32px;
-    }
+/* ─────────────────────────────────────────
+   HERO HEADER
+───────────────────────────────────────── */
+.ia-hero {
+    position: relative;
+    padding: 40px 0 32px;
+    margin-bottom: 36px;
+    overflow: hidden;
+}
 
-    .header-section h1 {
-        font-size: 2rem;
-        font-weight: 900;
-        color: var(--pro-header-text);
-        margin: 0 0 6px;
-        letter-spacing: -0.03em;
-    }
+.ia-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+        rgba(30,58,138,0.06) 0%,
+        rgba(139,92,246,0.04) 50%,
+        rgba(16,185,129,0.04) 100%);
+    border-radius: 20px;
+    pointer-events: none;
+}
 
-    .header-section p {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
+.ia-hero-inner {
+    position: relative;
+    z-index: 1;
+}
 
-    .header-section .header-tags {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-    }
+.ia-hero h1 {
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--primary-blue), #7c3aed, #0ea5e9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 8px;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    word-break: break-word;
+}
 
-    .header-tag {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+[data-theme="dark"] .ia-hero h1 {
+    background: linear-gradient(135deg, #facc15, #a78bfa, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
 
-    .header-tag.ml {
-        background: rgba(139, 92, 246, 0.1);
-        color: #7c3aed;
-        border: 1px solid rgba(139, 92, 246, 0.2);
-    }
+.ia-hero p {
+    color: var(--ia-muted);
+    font-size: 0.95rem;
+    margin: 0 0 16px;
+    max-width: 560px;
+}
 
-    .header-tag.route {
-        background: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-    }
+.hero-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 
-    .header-tag.eco {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-    }
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+}
 
-    /* ═══ SECTION DIVIDER ═══ */
-    .section-divider {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: var(--text-muted);
-        font-weight: 700;
-        margin: 36px 0 22px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+.hero-tag.ml     { background: rgba(124,58,237,0.1); color: #7c3aed; border-color: rgba(124,58,237,0.2); }
+.hero-tag.route  { background: rgba(14,165,233,0.1); color: #0ea5e9; border-color: rgba(14,165,233,0.2); }
+.hero-tag.eco    { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.2); }
+[data-theme="dark"] .hero-tag.ml    { background: rgba(167,139,250,0.12); color: #a78bfa; border-color: rgba(167,139,250,0.25); }
+[data-theme="dark"] .hero-tag.route { background: rgba(56,189,248,0.1);   color: #38bdf8; border-color: rgba(56,189,248,0.2); }
+[data-theme="dark"] .hero-tag.eco   { background: rgba(52,211,153,0.1);   color: #34d399; border-color: rgba(52,211,153,0.2); }
 
-    .section-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: var(--pro-border);
-    }
+/* ─────────────────────────────────────────
+   SECTION DIVIDERS
+───────────────────────────────────────── */
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 36px 0 24px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ia-muted);
+}
 
-    /* ═══ GRID DE CARDS ═══ */
-    .grid-ia-kpis {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 22px;
-        margin-bottom: 28px;
-    }
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--ia-border), transparent);
+}
 
-    .pro-card {
-        background: var(--pro-card-bg);
-        border: 1px solid var(--pro-border);
-        border-radius: var(--radius-lg);
-        padding: 24px;
-        box-shadow: var(--card-shadow);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
+.divider-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: var(--ia-border);
+    border-radius: 999px;
+    color: var(--ia-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: normal;
+    text-align: center;
+}
 
-    .pro-card:hover {
-        box-shadow: var(--card-shadow-hover);
-    }
+/* ─────────────────────────────────────────
+   GRID IA — 3 CARDS DE INTELIGÊNCIA
+───────────────────────────────────────── */
+.ia-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: stretch;
+}
 
-    .ai-card {
-        background: var(--ia-bg);
-        border: 1px solid var(--primary-blue);
-        position: relative;
-        overflow: hidden;
-    }
+/* ─────────────────────────────────────────
+   CARD BASE (glassmorphism)
+───────────────────────────────────────── */
+.ia-card {
+    background: var(--ia-bg);
+    border: 1px solid var(--ia-border);
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    transition: transform 0.25s, box-shadow 0.25s;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 
-    .ai-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
-    }
+.ia-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(30,58,138,0.12);
+}
 
-    .ai-card::after {
-        content: '🤖';
-        position: absolute;
-        bottom: -10px;
-        right: -10px;
-        font-size: 6rem;
-        opacity: 0.04;
-        pointer-events: none;
-    }
+[data-theme="dark"] .ia-card:hover {
+    box-shadow: 0 12px 40px rgba(250,204,21,0.08);
+}
 
-    /* Section Borders */
-    .card-border-green {
-        border-top: 4px solid #10b981;
-    }
+/* ── Card IA — faixa superior gradiente ── */
+.ia-card-ai {
+    border-color: rgba(124,58,237,0.3);
+}
 
-    .card-border-red {
-        border-top: 4px solid #ef4444;
-    }
+.ia-card-ai::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6, #3b82f6, #06b6d4);
+    border-radius: 18px 18px 0 0;
+}
 
-    .card-border-yellow {
-        border-top: 4px solid #f59e0b;
-    }
+.ia-card-ai::after {
+    content: '🤖';
+    position: absolute;
+    bottom: -8px; right: -8px;
+    font-size: 5.5rem;
+    opacity: 0.04;
+    pointer-events: none;
+    line-height: 1;
+}
 
-    .title-group {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
+/* ── Card Ranking ── */
+.ia-card-ranking {
+    border-top: 3px solid #10b981;
+}
 
-    .title-group h2 {
-        font-size: 0.88rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 0;
-        color: var(--pro-text);
-        font-weight: 700;
-    }
+.ia-card-ranking::after {
+    content: '🏆';
+    position: absolute;
+    bottom: -8px; right: -8px;
+    font-size: 5.5rem;
+    opacity: 0.04;
+    pointer-events: none;
+    line-height: 1;
+}
 
-    .badge-icon {
-        background: rgba(30, 58, 138, 0.1);
-        padding: 10px;
-        border-radius: 10px;
-        font-size: 1.3rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
+/* ── Card Alertas ── */
+.ia-card-alerts {
+    border-top: 3px solid #ef4444;
+}
 
-    .badge-blue {
-        background: var(--primary-blue);
-        color: white;
-    }
+.ia-card-alerts::after {
+    content: '🚨';
+    position: absolute;
+    bottom: -8px; right: -8px;
+    font-size: 5.5rem;
+    opacity: 0.04;
+    pointer-events: none;
+    line-height: 1;
+}
 
-    .badge-green {
-        background: #10b981;
-        color: white;
-    }
+/* ─────────────────────────────────────────
+   CARD HEADER
+───────────────────────────────────────── */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
 
-    .badge-red {
-        background: #ef4444;
-        color: white;
-    }
+.card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
 
-    .badge-yellow {
-        background: var(--secondary-yellow);
-        color: var(--dark-black);
-    }
+.icon-purple { background: linear-gradient(135deg, #7c3aed, #4f46e5); }
+.icon-green  { background: linear-gradient(135deg, #10b981, #059669); }
+.icon-red    { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.icon-dark   { background: linear-gradient(135deg, #1e293b, #0f172a); }
+[data-theme="dark"] .icon-dark { background: linear-gradient(135deg, #facc15, #f59e0b); }
 
-    .badge-dark {
-        background: var(--dark-black);
-        color: var(--secondary-yellow);
-    }
+.card-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ia-text);
+    margin: 0;
+    border: none;
+    padding: 0;
+}
 
-    /* ═══ MAPA + PAINEL ═══ */
-    .map-container-pro {
-        position: relative;
-        width: 100%;
-        height: 620px;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--pro-border);
-        overflow: hidden;
-        box-shadow: var(--card-shadow);
-        margin-top: 24px;
-    }
+.card-subtitle {
+    font-size: 0.7rem;
+    color: var(--ia-muted);
+    margin-top: 2px;
+}
 
-    #mapa-simulador {
-        width: 100%;
-        height: 100%;
-        z-index: 1;
-        transition: filter 0.3s ease;
-    }
+/* ─────────────────────────────────────────
+   CARD IA — RESULTADO
+───────────────────────────────────────── */
+#resultado-ia {
+    background: var(--ia-input);
+    border: 1px solid var(--ia-border);
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+}
 
-    [data-theme="dark"] #mapa-simulador {
-        filter: grayscale(0.4) contrast(1.15) invert(100%) hue-rotate(180deg);
-    }
+.ia-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--ia-muted);
+    font-size: 0.88rem;
+}
 
-    .control-panel-overlay {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        width: 360px;
-        background: var(--pro-card-bg);
-        border: 1px solid var(--pro-border);
-        border-radius: var(--radius-lg);
-        padding: 22px;
-        z-index: 1000;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        max-height: calc(100% - 32px);
-        overflow-y: auto;
-        backdrop-filter: blur(16px);
-    }
+.ia-prediction-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+}
 
-    /* Inputs */
-    .input-group-pro {
+.ia-kpi {
+    background: var(--ia-bg);
+    border: 1px solid var(--ia-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.ia-kpi-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--ia-muted);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.ia-kpi-value {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--ia-text);
+    line-height: 1;
+}
+
+/* ─────────────────────────────────────────
+   RANKING ITEMS
+───────────────────────────────────────── */
+#lista-ranking {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+#lista-ranking::-webkit-scrollbar { width: 4px; }
+#lista-ranking::-webkit-scrollbar-track { background: transparent; }
+#lista-ranking::-webkit-scrollbar-thumb { background: var(--ia-border); border-radius: 4px; }
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--ia-input);
+    border: 1px solid var(--ia-border);
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.ranking-item:hover { background: rgba(16,185,129,0.05); }
+
+.ranking-pos {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: #10b981;
+    min-width: 20px;
+}
+
+.ranking-pos.gold   { color: #f59e0b; }
+.ranking-pos.silver { color: #94a3b8; }
+.ranking-pos.bronze { color: #b45309; }
+
+.ranking-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--ia-text);
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.ranking-score {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #10b981;
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   ALERTA ITEMS
+───────────────────────────────────────── */
+#lista-alertas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+#lista-alertas::-webkit-scrollbar { width: 4px; }
+#lista-alertas::-webkit-scrollbar-track { background: transparent; }
+#lista-alertas::-webkit-scrollbar-thumb { background: var(--ia-border); border-radius: 4px; }
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(239,68,68,0.05);
+    border: 1px solid rgba(239,68,68,0.15);
+    border-left: 3px solid #ef4444;
+    border-radius: 10px;
+}
+
+.alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+.alert-text {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--ia-text);
+    font-weight: 500;
+    line-height: 1.4;
+    min-width: 0;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ─────────────────────────────────────────
+   TABELA DE EFICIÊNCIA
+───────────────────────────────────────── */
+.efficiency-card {
+    background: var(--ia-bg);
+    border: 1px solid var(--ia-border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    margin-bottom: 12px;
+}
+
+.efficiency-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--ia-border);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.efficiency-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.efficiency-table {
+    width: 100%;
+    min-width: 460px;
+    border-collapse: collapse;
+}
+
+.efficiency-table th {
+    background: var(--primary-blue) !important;
+    color: #fff !important;
+    padding: 13px 18px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.efficiency-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ia-border);
+    color: var(--ia-text);
+    background: var(--ia-bg);
+    font-size: 0.88rem;
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+
+.efficiency-table tr:last-child td { border-bottom: none; }
+.efficiency-table tbody tr:hover td { background: rgba(30,58,138,0.04); }
+[data-theme="dark"] .efficiency-table tbody tr:hover td { background: rgba(250,204,21,0.04); }
+
+/* Barra de progresso de desempenho */
+.perf-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.perf-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--ia-border);
+    border-radius: 999px;
+    overflow: hidden;
+    min-width: 60px;
+}
+.perf-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    transition: width 0.8s ease;
+}
+.perf-bar-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ia-text);
+    min-width: 40px;
+    text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   SIMULADOR DE ROTAS
+───────────────────────────────────────── */
+.map-wrapper {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--ia-border);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    margin-top: 8px;
+}
+
+.map-canvas {
+    width: 100%;
+    height: 580px;
+    display: block;
+    transition: filter 0.3s;
+}
+
+[data-theme="dark"] .map-canvas {
+    filter: grayscale(0.35) contrast(1.1) invert(100%) hue-rotate(180deg);
+}
+
+/* Painel lateral flutuante */
+.route-panel {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: min(340px, calc(100% - 32px));
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 22px;
+    z-index: 1000;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    max-height: calc(100% - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.route-panel::-webkit-scrollbar { width: 4px; }
+.route-panel::-webkit-scrollbar-thumb { background: var(--ia-border); border-radius: 4px; }
+
+.route-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--ia-border);
+}
+
+.route-panel-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ia-text);
+    margin: 0;
+}
+
+/* Inputs do painel */
+.route-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#search-consumo {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1px solid var(--ia-border);
+    border-radius: 10px;
+    background: var(--ia-input);
+    color: var(--ia-text);
+    outline: none;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+#search-consumo:focus {
+    border-color: var(--primary-blue);
+}
+
+.route-input-label {
+    font-size: 0.67rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ia-muted);
+}
+
+.route-input {
+    background: var(--ia-input);
+    border: 1.5px solid var(--ia-border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+    color: var(--ia-text);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.route-input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(30,58,138,0.12);
+}
+
+[data-theme="dark"] .route-input:focus {
+    border-color: #facc15;
+    box-shadow: 0 0 0 3px rgba(250,204,21,0.1);
+}
+
+.route-input-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    color: var(--ia-muted);
+    font-size: 0.75rem;
+}
+
+.route-input-divider::before,
+.route-input-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ia-border);
+}
+
+/* Autocomplete */
+.autocomplete-lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--ia-bg);
+    border: 1.5px solid var(--primary-blue);
+    border-radius: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 1001;
+    margin-top: 4px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    display: none;
+}
+
+.autocomplete-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--ia-border);
+    color: var(--ia-text);
+    transition: background 0.15s, padding-left 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item:hover { background: rgba(30,58,138,0.06); padding-left: 18px; }
+[data-theme="dark"] .autocomplete-item:hover { background: rgba(250,204,21,0.05); }
+
+/* Botão calcular */
+.btn-route {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--primary-blue), #1e40af);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 6px;
+    font-family: inherit;
+}
+
+.btn-route:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(30,58,138,0.35);
+}
+
+/* Resultado da rota */
+#sim-resultado {
+    margin-top: 16px;
+    display: none;
+}
+
+.route-result-status {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.route-result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.route-kpi {
+    background: var(--ia-input);
+    border: 1px solid var(--ia-border);
+    border-radius: 10px;
+    padding: 11px 13px;
+}
+
+.route-kpi-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ia-muted);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.route-kpi-value {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--ia-text);
+    line-height: 1;
+}
+
+/* ─────────────────────────────────────────
+   SPINNER
+───────────────────────────────────────── */
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(59,130,246,0.2);
+    border-top-color: var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────────
+   RESPONSIVIDADE E TRUNCAMENTO
+───────────────────────────────────────── */
+.d-show-mobile { display: none; }
+
+@media (max-width: 768px) {
+    .d-none-mobile { display: none !important; }
+    .d-show-mobile { display: inline !important; }
+
+    .map-wrapper {
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        margin-bottom: 14px;
+    }
+
+    .route-panel {
         position: relative;
-    }
-
-    .input-group-pro label {
-        font-size: 0.68rem;
-        font-weight: 700;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .input-pro {
-        background: var(--input-bg);
-        border: 1px solid var(--pro-border);
-        color: var(--pro-text);
-        padding: 12px 14px;
-        border-radius: var(--radius-sm);
-        font-size: 0.92rem;
-        transition: all 0.2s;
+        top: auto; left: auto;
         width: 100%;
-        font-family: 'Inter', sans-serif;
-    }
-
-    .input-pro:focus {
-        border-color: var(--primary-blue);
-        outline: none;
-        box-shadow: 0 0 0 3px var(--primary-blue-glow);
-    }
-
-    .btn-action {
-        background: linear-gradient(135deg, var(--primary-blue), #1e40af);
-        color: white;
-        font-weight: 700;
-        padding: 14px;
-        border-radius: var(--radius-sm);
+        max-height: none;
+        border-radius: 16px 16px 0 0;
+        box-shadow: none;
+        padding: 18px;
         border: none;
-        cursor: pointer;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    /* Transformando a tabela em layout empilhado (Hamburguer / Cards) */
+    .efficiency-table-wrap { overflow-x: hidden !important; width: 100%; box-sizing: border-box; }
+    .efficiency-table { min-width: 0 !important; width: 100%; display: block; box-sizing: border-box; }
+    .efficiency-table thead { display: none; }
+    .efficiency-table tbody, .efficiency-table tr, .efficiency-table td {
+        display: block;
         width: 100%;
-        transition: all 0.2s;
-        margin-top: 8px;
-        font-size: 0.82rem;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
+        box-sizing: border-box;
     }
-
-    .btn-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+    .efficiency-table tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--ia-border);
+        border-radius: 12px;
+        background: var(--ia-bg);
+        overflow: hidden;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
     }
-
-    /* Autocomplete */
-    .autocomplete-lista {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--pro-card-bg);
-        border: 1px solid var(--primary-blue);
-        border-radius: var(--radius-sm);
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1001;
-        margin-top: 4px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    
+    .efficiency-table td:not(:first-child) {
         display: none;
     }
-
-    .autocomplete-item {
-        padding: 11px 14px;
-        cursor: pointer;
-        font-size: 0.82rem;
-        border-bottom: 1px solid var(--pro-border);
-        color: var(--pro-text);
-        transition: all 0.15s;
+    
+    .efficiency-table tr.expanded td:not(:first-child) {
+        display: flex;
     }
 
-    .autocomplete-item:hover {
-        background: var(--primary-blue-glow);
-        color: var(--primary-blue);
-        padding-left: 18px;
+    .efficiency-table td {
+        text-align: right;
+        padding: 12px 14px 12px 45% !important;
+        position: relative;
+        border-bottom: 1px solid var(--ia-border);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        min-height: 48px;
     }
 
-    /* Tabela */
-    .table-container {
-        overflow-x: auto;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--pro-border);
-        margin-bottom: 24px;
+    .efficiency-table td:first-child {
+        padding: 14px 40px 14px 14px !important;
+        justify-content: flex-start;
+        border-bottom: none;
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
+    .efficiency-table tr.expanded td:first-child {
+        border-bottom: 1px solid var(--ia-border);
     }
 
-    th {
-        background: var(--primary-blue) !important;
-        color: white !important;
+    .efficiency-table td:last-child {
+        border-bottom: none;
+    }
+
+    .efficiency-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 14px;
+        width: 40%;
         text-align: left;
-        padding: 14px 16px;
+        font-weight: 800;
         font-size: 0.72rem;
+        color: var(--ia-muted);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 700;
     }
 
-    td {
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--pro-border);
-        color: var(--pro-text);
-        background: var(--pro-card-bg);
-        font-size: 0.88rem;
-        transition: background 0.2s;
+    .efficiency-table td:first-child::before {
+        content: none;
     }
 
-    tr:hover td {
-        background: var(--primary-blue-glow);
+    .efficiency-table td:first-child::after {
+        content: '▼';
+        position: absolute;
+        right: 18px;
+        font-size: 0.7rem;
+        color: var(--ia-muted);
+        transition: transform 0.2s;
     }
 
-    /* Scrollbars Customizadas para as Listas */
-    #lista-alertas::-webkit-scrollbar,
-    .control-panel-overlay::-webkit-scrollbar {
-        width: 6px;
+    .efficiency-table tr.expanded td:first-child::after {
+        transform: rotate(180deg);
     }
 
-    #lista-alertas::-webkit-scrollbar-track,
-    .control-panel-overlay::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 10px;
+    .map-canvas {
+        height: 380px;
+        border-radius: 0 0 16px 16px;
     }
 
-    [data-theme="dark"] #lista-alertas::-webkit-scrollbar-track,
-    [data-theme="dark"] .control-panel-overlay::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
+    .ia-card {
+        padding: 20px;
     }
 
-    #lista-alertas::-webkit-scrollbar-thumb,
-    .control-panel-overlay::-webkit-scrollbar-thumb {
-        background: var(--pro-border);
-        border-radius: 10px;
+    .ia-hero h1 {
+        font-size: 1.8rem;
     }
+}
 
-    #lista-alertas::-webkit-scrollbar-thumb:hover,
-    .control-panel-overlay::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-blue);
-    }
-
-    /* Spinner */
-    .spinner {
-        width: 20px;
-        height: 20px;
-        border: 3px solid rgba(59, 130, 246, 0.2);
-        border-top-color: var(--primary-blue);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* ═══ RESPONSIVIDADE ═══ */
-    @media (max-width: 1024px) {
-        .grid-ia-kpis {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .header-section h1 {
-            font-size: 1.5rem;
-        }
-
-        .control-panel-overlay {
-            position: relative;
-            top: 0;
-            left: 0;
-            width: 100%;
-            border-radius: 0;
-            box-shadow: none;
-        }
-
-        .map-container-pro {
-            height: auto;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-
-        #mapa-simulador {
-            height: 380px;
-        }
-    }
+@media (max-width: 480px) {
+    .map-canvas { height: 320px; }
+    .ia-hero { padding: 24px 0 20px; }
+    .ia-card { padding: 16px; }
+    .efficiency-header { padding: 16px; flex-direction: column; align-items: flex-start; }
+    .ia-prediction-grid { grid-template-columns: 1fr; }
+    .ia-hero h1 { font-size: 1.5rem; }
+    .section-divider { gap: 8px; margin: 24px 0 16px; }
+    .divider-badge { padding: 4px 8px; font-size: 0.65rem; text-align: left; }
+    .route-result-grid { grid-template-columns: 1fr; }
+    .table-controls { padding: 12px; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="header-section" role="banner">
-    <h1>Centro de Inteligência & Performance</h1>
-    <p>Análise preditiva com Machine Learning e roteamento logístico inteligente.</p>
-    <div class="header-tags">
-        <span class="header-tag ml" aria-label="Machine Learning">🧠 Machine Learning</span>
-        <span class="header-tag route" aria-label="Roteamento">🛰️ Roteamento OSRM</span>
-        <span class="header-tag eco" aria-label="Ecologia">🌱 Eco-Analytics</span>
+
+<!-- ═══════════════════════════════════════════════════
+     HERO HEADER
+═══════════════════════════════════════════════════ -->
+<div class="ia-hero" role="banner">
+    <div class="header-section">
+        <h1>Análise e Inteligência</h1>
+        <p style="color: var(--text-muted);">Veja previsões de custos e análises detalhadas da sua frota.</p>
+    </div>    
+    <div class="hero-tags">
+        <span class="hero-tag ml" aria-label="Machine Learning">🧠 Machine Learning</span>
+        <span class="hero-tag route" aria-label="Roteamento OSRM">🛰️ Roteamento OSRM</span>
+        <span class="hero-tag eco" aria-label="Eco Analytics">🌱 Eco-Analytics</span>
     </div>
 </div>
 
-<!-- ═══ MÓDULO 1: PREDIÇÃO IA + RANKING + ALERTAS ═══ -->
-<div class="section-divider" aria-hidden="true">🤖 Módulo de Inteligência Artificial</div>
+<!-- ═══════════════════════════════════════════════════
+     MÓDULO 1 — INTELIGÊNCIA ARTIFICIAL
+═══════════════════════════════════════════════════ -->
+<div class="section-divider" aria-hidden="true">
+    <span class="divider-badge">🤖 Módulo de Inteligência Artificial</span>
+</div>
 
-<div class="grid-ia-kpis" role="region" aria-label="Análise de Inteligência Artificial">
-    <section class="pro-card ai-card" aria-label="Predição de custos com IA">
-        <div class="title-group">
-            <span class="badge-icon badge-blue" aria-hidden="true">🤖</span>
-            <h2>Predição de Custos (IA)</h2>
+<div class="ia-grid" role="region" aria-label="Painéis de Inteligência Artificial">
+
+    <!-- Card 1: Predição de Custos IA -->
+    <section class="ia-card ia-card-ai" aria-label="Predição de custos com IA">
+        <div class="card-header">
+            <div class="card-icon icon-purple" aria-hidden="true">🤖</div>
+            <div>
+                <h2 class="card-title">Predição de Custos</h2>
+                <p class="card-subtitle">Modelo preditivo com Machine Learning</p>
+            </div>
         </div>
-        <div id="resultado-ia"
-            style="background: var(--input-bg); padding: 18px; border-radius: 10px; border: 1px solid var(--pro-border);">
-            <div style="display: flex; align-items: center; gap: 12px; color: var(--pro-text);">
+        <div id="resultado-ia">
+            <div class="ia-loading">
                 <div class="spinner" aria-hidden="true"></div>
                 <span>Sincronizando modelo preditivo...</span>
             </div>
         </div>
     </section>
 
-    <section class="pro-card card-border-green" aria-label="Ranking de eco-drivers">
-        <div class="title-group">
-            <span class="badge-icon badge-green" aria-hidden="true">🏆</span>
-            <h2>Top Eco-Drivers</h2>
+    <!-- Card 2: Top Eco-Drivers -->
+    <section class="ia-card ia-card-ranking" aria-label="Ranking de eco-drivers">
+        <div class="card-header">
+            <div class="card-icon icon-green" aria-hidden="true">🏆</div>
+            <div>
+                <h2 class="card-title">Top Eco-Drivers</h2>
+                <p class="card-subtitle">Motoristas mais eficientes da frota</p>
+            </div>
         </div>
-        <ul id="lista-ranking" style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;"
-            role="list">
-        </ul>
+        <ul id="lista-ranking" role="list"></ul>
     </section>
 
-    <section class="pro-card card-border-red" aria-label="Alertas de manutenção">
-        <div class="title-group">
-            <span class="badge-icon badge-red" aria-hidden="true">🚨</span>
-            <h2>Gestão de Riscos</h2>
+    <!-- Card 3: Gestão de Riscos -->
+    <section class="ia-card ia-card-alerts" aria-label="Alertas de manutenção e riscos">
+        <div class="card-header">
+            <div class="card-icon icon-red" aria-hidden="true">🚨</div>
+            <div>
+                <h2 class="card-title">Gestão de Riscos</h2>
+                <p class="card-subtitle">Alertas preditivos de manutenção</p>
+            </div>
         </div>
-        <ul id="lista-alertas"
-            style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 8px;"
-            role="list" aria-live="polite">
-        </ul>
+        <ul id="lista-alertas" role="list" aria-live="polite"></ul>
     </section>
+
 </div>
 
-<!-- ═══ MÓDULO 2: TABELA DE EFICIÊNCIA ═══ -->
-<div class="section-divider" aria-hidden="true">⚡ Relatório de Eficiência Energética</div>
+<!-- ═══════════════════════════════════════════════════
+     MÓDULO 2 — TABELA DE EFICIÊNCIA ENERGÉTICA
+═══════════════════════════════════════════════════ -->
+<div class="section-divider" aria-hidden="true">
+    <span class="divider-badge">⚡ Relatório de Eficiência Energética</span>
+</div>
 
-<section class="pro-card" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;"
-    aria-label="Tabela de eficiência energética">
-    <div class="table-container">
-        <table>
+<div class="efficiency-card" aria-label="Tabela de eficiência energética">
+    <div class="efficiency-header">
+        <div class="card-header" style="margin-bottom:0;">
+            <div class="card-icon" style="background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; font-size:1.1rem;" aria-hidden="true">⚡</div>
+            <div>
+                <h2 class="card-title" style="font-size:0.85rem;">Eficiência da Frota</h2>
+                <p class="card-subtitle">Custo por km e emissões de CO₂ por veículo</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-controls" style="padding: 16px;">
+        <div class="search-bar-container">
+            <input type="text" id="search-consumo" placeholder="Pesquisar por veículo...">
+        </div>
+    </div>
+    <div class="efficiency-table-wrap">
+        <table class="efficiency-table">
             <thead>
                 <tr>
-                    <th scope="col">Ativo Operacional</th>
-                    <th scope="col">Desempenho</th>
-                    <th scope="col">Custo/Km</th>
-                    <th scope="col">Pegada CO₂</th>
+                    <th scope="col" class="sortable" onclick="ordenarConsumo('veiculo', this)">Ativo Operacional <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarConsumo('eficiencia', this)">Desempenho <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarConsumo('custo_km', this)">Custo/Km <span class="sort-icon">↕️</span></th>
+                    <th scope="col" class="sortable" onclick="ordenarConsumo('co2_total', this)">Pegada CO₂ <span class="sort-icon">↕️</span></th>
                 </tr>
             </thead>
-            <tbody id="lista-consumo">
-            </tbody>
+            <tbody id="lista-consumo"></tbody>
         </table>
     </div>
-</section>
 
-<!-- ═══ MÓDULO 3: SIMULADOR DE ROTAS ═══ -->
-<div class="section-divider" aria-hidden="true">🛰️ Plataforma de Roteamento Inteligente</div>
+    <div class="pagination" id="pagination-consumo" style="padding: 16px;"></div>
+</div>
 
-<div class="map-container-pro" role="region" aria-label="Simulador de rotas">
-    <div id="mapa-simulador"></div>
+<!-- ═══════════════════════════════════════════════════
+     MÓDULO 3 — SIMULADOR DE ROTAS
+═══════════════════════════════════════════════════ -->
+<div class="section-divider" aria-hidden="true">
+    <span class="divider-badge">🛰️ Plataforma de Roteamento Inteligente</span>
+</div>
 
-    <div class="control-panel-overlay">
-        <div class="title-group"
-            style="margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--pro-border);">
-            <span class="badge-icon badge-dark" aria-hidden="true">🛰️</span>
-            <h2>Simulador de Rotas</h2>
+<div class="map-wrapper" role="region" aria-label="Simulador de rotas inteligente">
+
+    <!-- Painel de controle flutuante -->
+    <div class="route-panel">
+        <div class="route-panel-header">
+            <div class="card-icon icon-dark" style="width:36px;height:36px;font-size:1rem;" aria-hidden="true">🛰️</div>
+            <h2 class="route-panel-title">Simulador de Rotas</h2>
         </div>
 
-        <div class="input-group-pro">
-            <label for="sim-origem">Ponto de Partida</label>
-            <input type="text" id="sim-origem" class="input-pro" placeholder="Ex: Av. Paulista, São Paulo..."
-                autocomplete="off" aria-describedby="desc-origem">
+        <div class="route-input-group">
+            <label class="route-input-label" for="sim-origem">📍 Ponto de Partida</label>
+            <input type="text" id="sim-origem" class="route-input"
+                   placeholder="Ex: Av. Paulista, São Paulo..."
+                   autocomplete="off"
+                   aria-describedby="desc-origem">
             <span id="desc-origem" class="sr-only">Digite o endereço de origem para calcular a rota</span>
             <div id="sugestoes-origem" class="autocomplete-lista" role="listbox"></div>
         </div>
 
-        <div class="input-group-pro">
-            <label for="sim-destino">Destino Final</label>
-            <input type="text" id="sim-destino" class="input-pro" placeholder="Ex: Aeroporto de Guarulhos..."
-                autocomplete="off" aria-describedby="desc-destino">
+        <div class="route-input-divider">↕</div>
+
+        <div class="route-input-group">
+            <label class="route-input-label" for="sim-destino">🏁 Destino Final</label>
+            <input type="text" id="sim-destino" class="route-input"
+                   placeholder="Ex: Aeroporto de Guarulhos..."
+                   autocomplete="off"
+                   aria-describedby="desc-destino">
             <span id="desc-destino" class="sr-only">Digite o endereço de destino para calcular a rota</span>
             <div id="sugestoes-destino" class="autocomplete-lista" role="listbox"></div>
         </div>
 
-        <button onclick="calcularViagem()" class="btn-action"
-            aria-label="Calcular rota otimizada entre origem e destino">
-            🗺️ CALCULAR ROTA
+        <div class="route-input-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <label class="route-input-label" for="sim-velocidade" style="margin-bottom: 0;">⚡ Velocidade do Caminhão</label>
+            <select id="sim-velocidade" class="route-input" style="width: auto; padding: 6px 12px; font-weight: bold; cursor: pointer;">
+                <option value="1">1x (Normal)</option>
+                <option value="5" selected>5x (Rápido)</option>
+                <option value="20">20x (Super Rápido)</option>
+                <option value="50">50x (Turbo)</option>
+            </select>
+        </div>
+
+        <button onclick="calcularViagem()" class="btn-route"
+                aria-label="Calcular rota otimizada entre origem e destino">
+            🗺️ Calcular Rota Otimizada
         </button>
 
-        <div id="sim-resultado"
-            style="margin-top: 18px; background: var(--input-bg); padding: 16px; border-radius: 10px; border: 1px solid var(--pro-border); display: none;"
-            role="region" aria-live="polite">
-        </div>
+        <p style="font-size: 0.75rem; color: var(--ia-muted); margin-top: 14px; text-align: center; line-height: 1.4;">
+            💡 <b>Dica Mágica:</b> Você também pode clicar diretamente no mapa em 2 pontos diferentes para gerar a rota automaticamente!
+        </p>
+
+        <!-- Resultado -->
+        <div id="sim-resultado" role="region" aria-live="polite"></div>
     </div>
+
+    <!-- Mapa -->
+    <div id="mapa-simulador" class="map-canvas"></div>
+
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -572,163 +1123,229 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-    let mapaSimulador, camadaLinha, marcadorOrigem, marcadorDestino, marcadorCaminhao;
-    let coordOrigemSalva = null, coordDestinoSalva = null;
-    let timerOrigem, timerDestino, animacaoInterval;
+/* ════════════════════════════════════════════════
+   SIMULADOR DE ROTAS — Lógica JS
+════════════════════════════════════════════════ */
+let mapaSimulador, camadaLinha, marcadorOrigem, marcadorDestino, marcadorCaminhao;
+let coordOrigemSalva = null, coordDestinoSalva = null;
+let timerOrigem, timerDestino, animacaoInterval;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        mapaSimulador = L.map('mapa-simulador', { zoomControl: false }).setView([-23.5614, -46.6564], 11);
-        L.control.zoom({ position: 'topright' }).addTo(mapaSimulador);
+document.addEventListener('DOMContentLoaded', () => {
+    mapaSimulador = L.map('mapa-simulador', { zoomControl: false }).setView([-23.5614, -46.6564], 11);
+    L.control.zoom({ position: 'topright' }).addTo(mapaSimulador);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
-        }).addTo(mapaSimulador);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+    }).addTo(mapaSimulador);
 
-        configurarAutocomplete('sim-origem', 'sugestoes-origem', true);
-        configurarAutocomplete('sim-destino', 'sugestoes-destino', false);
+    configurarAutocomplete('sim-origem', 'sugestoes-origem', true);
+    configurarAutocomplete('sim-destino', 'sugestoes-destino', false);
+
+    /* ── ATALHO: Selecionar clicando no mapa ── */
+    let clickState = 0;
+    mapaSimulador.on('click', function(e) {
+        const inputOrigem = document.getElementById('sim-origem');
+        const inputDestino = document.getElementById('sim-destino');
+        
+        // Se ambos estiverem preenchidos ou estamos no começo:
+        if (clickState === 0 || (inputOrigem.value !== '' && inputDestino.value !== '')) {
+            inputOrigem.value = "📍 Ponto Selecionado";
+            coordOrigemSalva = { lat: e.latlng.lat, lng: e.latlng.lng };
+            inputDestino.value = "";
+            coordDestinoSalva = null;
+            clickState = 1;
+            
+            // Limpa o mapa para mostrar o ponto inicial
+            if (camadaLinha) mapaSimulador.removeLayer(camadaLinha);
+            if (marcadorOrigem) mapaSimulador.removeLayer(marcadorOrigem);
+            if (marcadorDestino) mapaSimulador.removeLayer(marcadorDestino);
+            if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
+            
+            marcadorOrigem = L.marker([e.latlng.lat, e.latlng.lng]).addTo(mapaSimulador);
+        } else {
+            inputDestino.value = "🏁 Ponto Selecionado";
+            coordDestinoSalva = { lat: e.latlng.lat, lng: e.latlng.lng };
+            clickState = 0;
+            calcularViagem(); // Aciona automaticamente
+        }
+    });
+});
+
+function configurarAutocomplete(inputId, listaId, isOrigem) {
+    const input = document.getElementById(inputId);
+    const lista = document.getElementById(listaId);
+    input.addEventListener('input', function () {
+        if (isOrigem) coordOrigemSalva = null; else coordDestinoSalva = null;
+        clearTimeout(isOrigem ? timerOrigem : timerDestino);
+        
+        const texto = this.value;
+        if (!texto || texto.length < 4) { 
+            lista.style.display = 'none'; 
+            return; 
+        }
+
+        // Mostra feedback visual imediato para o usuário saber que o sistema está respondendo
+        lista.style.display = 'block';
+        lista.innerHTML = '<div class="autocomplete-item" style="color: var(--ia-muted); text-align: center; font-size: 0.85rem;">⏳ Buscando locais...</div>';
+
+        const timer = setTimeout(async () => {
+            try {
+                // Adicionado countrycodes=br para deixar a busca na API Nominatim mais rápida e precisa
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(texto)}&countrycodes=br&limit=5`);
+                const dados = await res.json();
+                lista.innerHTML = '';
+                
+                if (dados.length > 0) {
+                    dados.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        div.setAttribute('role', 'option');
+                        // Exibe apenas o nome simplificado do local para melhor leitura
+                        const nomeSimplificado = item.display_name.split(',').slice(0, 3).join(', ');
+                        div.innerHTML = `📍 <span style="flex:1;">${nomeSimplificado}</span>`;
+                        div.onclick = () => {
+                            input.value = item.display_name;
+                            if (isOrigem) coordOrigemSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+                            else coordDestinoSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+                            lista.style.display = 'none';
+                        };
+                        lista.appendChild(div);
+                    });
+                } else {
+                    lista.innerHTML = '<div class="autocomplete-item" style="color: var(--ia-muted); text-align: center; font-size: 0.85rem;">Nenhum local encontrado.</div>';
+                    setTimeout(() => { lista.style.display = 'none'; }, 2000);
+                }
+            } catch (e) { 
+                console.error(e);
+                lista.innerHTML = '<div class="autocomplete-item" style="color: #ef4444; text-align: center; font-size: 0.85rem;">Erro de conexão na busca.</div>';
+                setTimeout(() => { lista.style.display = 'none'; }, 2000);
+            }
+        }, 400); // Tempo de debounce reduzido de 500ms para 400ms para parecer mais ágil
+        
+        if (isOrigem) timerOrigem = timer; else timerDestino = timer;
+    });
+}
+
+async function buscarCoordenadas(end) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(end)}&limit=1`);
+        const d = await res.json();
+        return d.length > 0 ? { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) } : null;
+    } catch (e) { return null; }
+}
+
+function iniciarAnimacao(coords) {
+    if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
+    if (animacaoInterval)  clearInterval(animacaoInterval);
+    if (!coords || coords.length <= 2) return;
+
+    const icone = L.divIcon({
+        className: 'custom-icon',
+        html: `<div style="background:#111827;color:#facc15;width:34px;height:34px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:16px;border:2px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.3);">🚛</div>`,
+        iconSize: [34,34], iconAnchor: [17,17]
     });
 
-    function configurarAutocomplete(inputId, listaId, isOrigem) {
-        const input = document.getElementById(inputId);
-        const lista = document.getElementById(listaId);
-        input.addEventListener('input', function () {
-            if (isOrigem) coordOrigemSalva = null; else coordDestinoSalva = null;
-            clearTimeout(isOrigem ? timerOrigem : timerDestino);
-            const texto = this.value;
-            if (!texto || texto.length < 4) { lista.style.display = 'none'; return; }
+    marcadorCaminhao = L.marker(coords[0], { icon: icone }).addTo(mapaSimulador);
+    
+    // Velocidade
+    const velSelect = document.getElementById('sim-velocidade');
+    const velocidade = velSelect ? parseInt(velSelect.value) : 5;
+    
+    let i = 0;
+    animacaoInterval = setInterval(() => {
+        if (i >= coords.length) { clearInterval(animacaoInterval); return; }
+        marcadorCaminhao.setLatLng(coords[i]);
+        i += velocidade;
+    }, 35);
+}
 
-            const timer = setTimeout(async () => {
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(texto)}&limit=5`);
-                    const dados = await res.json();
-                    lista.innerHTML = '';
-                    if (dados.length > 0) {
-                        dados.forEach(item => {
-                            const div = document.createElement('div');
-                            div.className = 'autocomplete-item';
-                            div.setAttribute('role', 'option');
-                            div.innerHTML = `📍 ${item.display_name}`;
-                            div.onclick = () => {
-                                input.value = item.display_name;
-                                if (isOrigem) coordOrigemSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
-                                else coordDestinoSalva = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
-                                lista.style.display = 'none';
-                            };
-                            lista.appendChild(div);
-                        });
-                        lista.style.display = 'block';
-                    }
-                } catch (e) { console.error(e); }
-            }, 500);
-            if (isOrigem) timerOrigem = timer; else timerDestino = timer;
+async function calcularViagem() {
+    const tOrigem  = document.getElementById('sim-origem').value;
+    const tDestino = document.getElementById('sim-destino').value;
+    if (!tOrigem || !tDestino) {
+        if (typeof showToast === 'function') showToast('Defina os pontos de origem e destino.', 'error');
+        else alert('Defina os pontos de origem e destino.');
+        return;
+    }
+
+    if (camadaLinha)    mapaSimulador.removeLayer(camadaLinha);
+    if (marcadorOrigem) mapaSimulador.removeLayer(marcadorOrigem);
+    if (marcadorDestino) mapaSimulador.removeLayer(marcadorDestino);
+    if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
+
+    const divRes = document.getElementById('sim-resultado');
+    divRes.style.display = 'block';
+    divRes.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--ia-input);border:1px solid var(--ia-border);border-radius:10px;color:var(--ia-muted);font-size:0.85rem;">
+            <div class="spinner"></div> Calculando telemetria da rota...
+        </div>`;
+
+    let o = coordOrigemSalva  || await buscarCoordenadas(tOrigem);
+    let d = coordDestinoSalva || await buscarCoordenadas(tDestino);
+
+    if (!o || !d) {
+        divRes.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;"><span>❌</span><span style="color:#ef4444;font-weight:700;font-size:0.84rem;">Coordenadas não localizadas. Tente um endereço mais específico.</span></div>`;
+        return;
+    }
+
+    try {
+        const resposta = await fetch('/api/dashboard/simular_viagem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ origem: o, destino: d })
         });
-    }
 
-    async function buscarCoordenadas(end) {
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(end)}&limit=1`);
-            const d = await res.json();
-            return d.length > 0 ? { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) } : null;
-        } catch (e) { return null; }
-    }
+        const calc   = await resposta.json();
+        const isCont = calc.status === 'contingencia';
+        const corLinha = isCont ? '#facc15' : '#3b82f6';
 
-    function iniciarAnimacao(coords) {
-        if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
-        if (animacaoInterval) clearInterval(animacaoInterval);
-        if (!coords || coords.length <= 2) return;
+        divRes.innerHTML = `
+            <div class="route-result-status" style="color:${isCont ? '#eab308' : 'var(--primary-blue)'};">
+                <span>${isCont ? '⚠️' : '🛰️'}</span>
+                ${isCont ? 'Rota Estimada (Offline)' : 'Rota Satélite Validada'}
+            </div>
+            <div class="route-result-grid">
+                <div class="route-kpi">
+                    <span class="route-kpi-label">Distância</span>
+                    <span class="route-kpi-value">${calc.distancia_km} km</span>
+                </div>
+                <div class="route-kpi">
+                    <span class="route-kpi-label">Tempo Est.</span>
+                    <span class="route-kpi-value">${calc.tempo}</span>
+                </div>
+                <div class="route-kpi">
+                    <span class="route-kpi-label">Consumo</span>
+                    <span class="route-kpi-value">${calc.litros} L</span>
+                </div>
+                <div class="route-kpi" style="border-color:rgba(16,185,129,0.3);">
+                    <span class="route-kpi-label">Custo Total</span>
+                    <span class="route-kpi-value" style="color:#10b981;">R$ ${calc.custo.toFixed(2)}</span>
+                </div>
+            </div>`;
 
-        const icone = L.divIcon({
+        camadaLinha = L.polyline(calc.rota_gps, {
+            color: corLinha, dashArray: isCont ? '8, 8' : '', weight: 5, opacity: 0.9
+        }).addTo(mapaSimulador);
+
+        marcadorOrigem = L.marker([o.lat, o.lng]).addTo(mapaSimulador);
+
+        const iconeDestino = L.divIcon({
             className: 'custom-icon',
-            html: `<div style="background: var(--dark-black); color: var(--secondary-yellow); width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 2px solid var(--white); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🚛</div>`,
-            iconSize: [34, 34], iconAnchor: [17, 17]
+            html: `<div style="background:#ef4444;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 12px rgba(239,68,68,0.6);"></div>`,
+            iconSize: [22, 22], iconAnchor: [11, 11]
+        });
+        marcadorDestino = L.marker([d.lat, d.lng], { icon: iconeDestino }).addTo(mapaSimulador);
+
+        mapaSimulador.fitBounds(camadaLinha.getBounds(), {
+            paddingBottomRight: [20, 20],
+            paddingTopLeft: window.innerWidth > 768 ? [380, 20] : [20, 20]
         });
 
-        marcadorCaminhao = L.marker(coords[0], { icon: icone }).addTo(mapaSimulador);
-        let i = 0;
-        animacaoInterval = setInterval(() => {
-            if (i >= coords.length) { clearInterval(animacaoInterval); return; }
-            marcadorCaminhao.setLatLng(coords[i]);
-            i += 3;
-        }, 35);
+        if (!isCont) iniciarAnimacao(calc.rota_gps);
+
+    } catch (err) {
+        divRes.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;"><span>❌</span><span style="color:#ef4444;font-weight:700;font-size:0.84rem;">Erro de comunicação com a API de roteamento OSRM.</span></div>`;
     }
-
-    async function calcularViagem() {
-        const tOrigem = document.getElementById('sim-origem').value;
-        const tDestino = document.getElementById('sim-destino').value;
-        if (!tOrigem || !tDestino) return alert("Erro: Defina os pontos de origem e destino.");
-
-        if (camadaLinha) mapaSimulador.removeLayer(camadaLinha);
-        if (marcadorOrigem) mapaSimulador.removeLayer(marcadorOrigem);
-        if (marcadorDestino) mapaSimulador.removeLayer(marcadorDestino);
-        if (marcadorCaminhao) mapaSimulador.removeLayer(marcadorCaminhao);
-
-        const divRes = document.getElementById('sim-resultado');
-        divRes.style.display = 'block';
-        divRes.innerHTML = `<div style="display: flex; align-items: center; gap: 12px; color: var(--primary-blue); font-weight: 700;"><div class="spinner"></div> Calculando telemetria...</div>`;
-
-        let o = coordOrigemSalva || await buscarCoordenadas(tOrigem);
-        let d = coordDestinoSalva || await buscarCoordenadas(tDestino);
-
-        if (!o || !d) return divRes.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.4rem;">❌</span><p style="color:#ef4444;font-weight:700;font-size:0.85rem;">Coordenadas não localizadas.</p></div>`;
-
-        try {
-            const resposta = await fetch('/api/dashboard/simular_viagem', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origem: o, destino: d })
-            });
-
-            const calc = await resposta.json();
-            const isCont = calc.status === "contingencia";
-            const corLinha = isCont ? "#facc15" : "#3b82f6";
-
-            divRes.innerHTML = `
-                    <div style="font-size: 0.72rem; font-weight: 800; color: ${isCont ? '#eab308' : 'var(--primary-blue)'}; text-transform: uppercase; margin-bottom: 14px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;">
-                        <span aria-hidden="true">${isCont ? '⚠️' : '🛰️'}</span>
-                        ${isCont ? 'Rota Estimada (Offline)' : 'Rota Satélite Validada'}
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                        <div style="padding: 12px; background: var(--primary-blue-glow); border-radius: 8px;">
-                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Distância</span>
-                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.distancia_km} km</strong>
-                        </div>
-                        <div style="padding: 12px; background: var(--primary-blue-glow); border-radius: 8px;">
-                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Tempo Est.</span>
-                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.tempo}</strong>
-                        </div>
-                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border-radius: 8px;">
-                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Consumo</span>
-                            <strong style="font-size: 1.2rem; color: var(--pro-text);">${calc.litros} L</strong>
-                        </div>
-                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border-radius: 8px;">
-                            <span style="font-size: 0.65rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Custo Total</span>
-                            <strong style="font-size: 1.2rem; color: #10b981;">R$ ${calc.custo.toFixed(2)}</strong>
-                        </div>
-                    </div>`;
-
-            camadaLinha = L.polyline(calc.rota_gps, {
-                color: corLinha, dashArray: isCont ? '8, 8' : '', weight: 5, opacity: 0.9
-            }).addTo(mapaSimulador);
-
-            marcadorOrigem = L.marker([o.lat, o.lng]).addTo(mapaSimulador);
-
-            const iconeDestino = L.divIcon({
-                className: 'custom-icon',
-                html: `<div style="background: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 12px rgba(239,68,68,0.6);"></div>`,
-                iconSize: [22, 22], iconAnchor: [11, 11]
-            });
-            marcadorDestino = L.marker([d.lat, d.lng], { icon: iconeDestino }).addTo(mapaSimulador);
-
-            mapaSimulador.fitBounds(camadaLinha.getBounds(), {
-                paddingBottomRight: [20, 20],
-                paddingTopLeft: window.innerWidth > 768 ? [400, 20] : [20, 20]
-            });
-
-            if (!isCont) iniciarAnimacao(calc.rota_gps);
-
-        } catch (err) {
-            divRes.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.4rem;">❌</span><p style="color:#ef4444;font-weight:700;font-size:0.85rem;">Erro de comunicação com API OSRM.</p></div>`;
-        }
-    }
+}
 </script>
 {% endblock %}

@@ -39,6 +39,10 @@ import os
 import urllib.request
 import json
 import math
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -74,7 +78,7 @@ def carregar_usuario(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE id = %s",
+        "SELECT id, nome, username, senha_hash, role, email FROM usuarios WHERE id = %s",
         (int(user_id),)
     )
     linha = cursor.fetchone()
@@ -123,8 +127,8 @@ def pagina_login():
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT id, nome, username, senha_hash, role FROM usuarios WHERE username = %s",
-                (username,)
+                "SELECT id, nome, username, senha_hash, role, email FROM usuarios WHERE username = %s OR email = %s",
+                (username, username)
             )
             linha = cursor.fetchone()
             cursor.close()
@@ -156,6 +160,169 @@ def logout():
     """Encerra a sessão do usuário e redireciona para o login."""
     logout_user()
     return redirect(url_for('pagina_login'))
+
+
+# ==========================================
+# ROTAS DE RECUPERAÇÃO DE SENHA
+# ==========================================
+
+def get_serializer():
+    return URLSafeTimedSerializer(app.secret_key)
+
+def send_reset_email(to_email, reset_link):
+    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+    smtp_port = int(os.getenv('SMTP_PORT', 587))
+    smtp_user = os.getenv('SMTP_USER', '')
+    smtp_password = os.getenv('SMTP_PASSWORD', '')
+
+    msg = MIMEMultipart('alternative')
+    msg['From'] = smtp_user
+    msg['To'] = to_email
+    msg['Subject'] = 'Redefinição de Senha - UniLog'
+
+    body_plain = f"""
+    Olá,
+
+    Você solicitou a redefinição de sua senha. Copie e cole o link abaixo no seu navegador para criar uma nova senha:
+    {reset_link}
+    
+    Este link é válido por 30 minutos. Se você não solicitou, pode ignorar este e-mail.
+
+    Atenciosamente,
+    Equipe UniLog
+    """
+    
+    body_html = f"""
+    <html>
+      <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9; padding: 40px 0; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);">
+
+          <!-- HEADER COM LOGO -->
+          <div style="background-color: #000000; padding: 30px 20px; text-align: center; border-bottom: 4px solid #facc15;">
+            <img
+              src="https://frotas.corsini.inf.br/imagens/logo.jpg"
+              alt="UniLog Solucoes Logisticas"
+              style="display: block; margin: 0 auto; max-width: 100%; height: auto; width: 180px; border: 0;"
+            />
+          </div>
+
+          <!-- CORPO DO EMAIL -->
+          <div style="padding: 40px 40px 30px; color: #334155; background-color: #ffffff;">
+            <h2 style="margin-top: 0; font-size: 22px; color: #1e3a8a; text-align: center; letter-spacing: 0.5px;">
+              Redefini&ccedil;&atilde;o de Senha
+            </h2>
+            <p style="font-size: 16px; line-height: 1.6; margin-top: 25px; margin-bottom: 20px; color: #334155;">
+              Ol&aacute;,
+            </p>
+            <p style="font-size: 16px; line-height: 1.6; margin-bottom: 35px; color: #475569;">
+              Recebemos uma solicita&ccedil;&atilde;o para redefinir a senha da sua conta na <strong style="color: #2563eb;">UniLog</strong>.
+              Se foi voc&ecirc; quem fez este pedido, clique no bot&atilde;o abaixo para criar uma nova senha de acesso:
+            </p>
+            
+            <div style="text-align: center; margin-bottom: 40px;">
+              <a href="{reset_link}" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);">
+                Redefinir Minha Senha
+              </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #64748b; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 25px; text-align: center;">
+              <strong style="color: #d97706;">Aten&ccedil;&atilde;o:</strong> Por seguran&ccedil;a, este link expira em <strong>30 minutos</strong>.<br><br>
+              Se voc&ecirc; n&atilde;o fez essa solicita&ccedil;&atilde;o, pode ignorar este e-mail tranquilamente.
+              Sua senha permanecer&aacute; a mesma.
+            </p>
+          </div>
+
+          <!-- RODAPE -->
+          <div style="background-color: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; font-size: 13px; color: #64748b; letter-spacing: 0.5px;">
+              <strong style="color: #2563eb;">UniLog</strong> Solu&ccedil;&otilde;es Log&iacute;sticas &bull; PIM III
+            </p>
+            <p style="margin: 8px 0 0 0; font-size: 11px; color: #94a3b8;">
+              UNIP &mdash; An&aacute;lise e Desenvolvimento de Sistemas
+            </p>
+          </div>
+
+        </div>
+      </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(body_plain, 'plain'))
+    msg.attach(MIMEText(body_html, 'html'))
+
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Erro SMTP: {e}")
+        return False
+
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def forgot_password():
+    dados = request.get_json()
+    email = dados.get('email', '').strip()
+    
+    if not email:
+        return jsonify({"erro": "E-mail obrigatório."}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username FROM usuarios WHERE email = %s", (email,))
+    linha = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not linha:
+        return jsonify({"mensagem": "Se este e-mail estiver cadastrado, um link foi enviado."}), 200
+
+    s = get_serializer()
+    token = s.dumps(linha[0], salt='recover-password')
+    reset_link = f"{request.host_url}login?token={token}"
+    print(f"Link: {reset_link}")
+    
+    sucesso = send_reset_email(email, reset_link)
+    if sucesso:
+        return jsonify({"mensagem": "E-mail de recuperação enviado."}), 200
+    return jsonify({"erro": "Erro ao enviar e-mail. Verifique o .env."}), 500
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password():
+    dados = request.get_json()
+    token = dados.get('token', '')
+    nova_senha = dados.get('senha', '')
+
+    if not token or not nova_senha:
+        return jsonify({"erro": "Dados incompletos."}), 400
+
+    if len(nova_senha) < 6:
+        return jsonify({"erro": "Mínimo de 6 caracteres."}), 400
+
+    s = get_serializer()
+    try:
+        user_id = s.loads(token, salt='recover-password', max_age=1800)
+    except SignatureExpired:
+        return jsonify({"erro": "Link expirado."}), 400
+    except BadSignature:
+        return jsonify({"erro": "Link inválido."}), 400
+
+    senha_hash = bcrypt.generate_password_hash(nova_senha).decode('utf-8')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE usuarios SET senha_hash = %s WHERE id = %s", (senha_hash, user_id))
+        conn.commit()
+        return jsonify({"mensagem": "Senha atualizada! Faça o login."}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"erro": "Erro banco de dados."}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 # ==========================================
@@ -266,10 +433,24 @@ def gerenciar_manutencoes():
     elif request.method == 'POST':
         dados = request.get_json()
         try:
+            veiculo_id = int(dados['veiculo_id'])
+            nova_quilometragem = int(dados['quilometragem'])
+
+            cursor.execute("SELECT quilometragem FROM veiculos WHERE id = %s", (veiculo_id,))
+            v_info = cursor.fetchone()
+            
+            if not v_info:
+                return jsonify({"erro": "Veículo não encontrado."}), 404
+
+            km_atual_v = v_info[0]
+            if nova_quilometragem < km_atual_v:
+                return jsonify({"erro": f"Odômetro inválido! O valor não pode ser menor que o atual ({km_atual_v} km)."}), 400
+
             cursor.execute(
                 "INSERT INTO manutencoes (veiculo_id, data_manutencao, tipo, custo, descricao, quilometragem) VALUES (%s, %s, %s, %s, %s, %s)",
-                (dados['veiculo_id'], dados['data_manutencao'], dados['tipo'], dados['custo'], dados['descricao'], dados['quilometragem'])
+                (veiculo_id, dados['data_manutencao'], dados['tipo'], dados['custo'], dados['descricao'], nova_quilometragem)
             )
+            cursor.execute("UPDATE veiculos SET quilometragem = %s WHERE id = %s", (nova_quilometragem, veiculo_id))
             conn.commit()
             return jsonify({"mensagem": "Sucesso"}), 201
         except Exception as e:
@@ -379,8 +560,8 @@ def gerenciar_abastecimentos():
                 }), 403
 
             # 3. VALIDAÇÃO DE ODÔMETRO (JÁ EXISTENTE)
-            if novo_odometro < km_atual_v:
-                return jsonify({"erro": f"Odômetro inválido! O atual é {km_atual_v} km."}), 400
+            if novo_odometro <= km_atual_v:
+                return jsonify({"erro": f"Odômetro inválido! O valor deve ser maior que o atual ({km_atual_v} km)."}), 400
 
             # 4. INSERE O ABASTECIMENTO SE TUDO ESTIVER OK
             cursor.execute(
@@ -638,16 +819,13 @@ def simular_viagem():
 @app.route('/api/usuarios', methods=['GET'])
 @login_required
 def listar_usuarios():
-    """
-    GET /api/usuarios → Retorna todos os usuários cadastrados.
-    Acessível apenas por administradores.
-    """
+    """Retorna todos os usuários. Requer admin."""
     if not current_user.is_admin():
         return jsonify({"erro": "Acesso negado."}), 403
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, nome, username, senha_hash, role FROM usuarios ORDER BY id ASC")
+    cursor.execute("SELECT id, nome, username, senha_hash, role, email FROM usuarios ORDER BY id ASC")
     linhas = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -673,6 +851,7 @@ def criar_usuario():
     dados = request.get_json()
     nome     = dados.get('nome', '').strip()
     username = dados.get('username', '').strip()
+    email    = dados.get('email', '').strip()
     senha    = dados.get('senha', '')
     role     = dados.get('role', 'operador')
 
@@ -689,8 +868,8 @@ def criar_usuario():
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO usuarios (nome, username, senha_hash, role) VALUES (%s, %s, %s, %s)",
-            (nome, username, senha_hash, role)
+            "INSERT INTO usuarios (nome, username, email, senha_hash, role) VALUES (%s, %s, %s, %s, %s)",
+            (nome, username, email if email else None, senha_hash, role)
         )
         conn.commit()
         return jsonify({"mensagem": f"Usuário '{username}' criado com sucesso!"}), 201
